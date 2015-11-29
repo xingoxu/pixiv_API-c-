@@ -1,0 +1,13 @@
+C:\Users\xingo\Desktop\20134834135\pixiv_demo\pixiv_demo\bin\Debug\pixiv_demo.exe.config
+C:\Users\xingo\Desktop\20134834135\pixiv_demo\pixiv_demo\bin\Debug\pixiv_demo.exe
+C:\Users\xingo\Desktop\20134834135\pixiv_demo\pixiv_demo\bin\Debug\pixiv_demo.pdb
+C:\Users\xingo\Desktop\20134834135\pixiv_demo\pixiv_demo\bin\Debug\Newtonsoft.Json.dll
+C:\Users\xingo\Desktop\20134834135\pixiv_demo\pixiv_demo\bin\Debug\Newtonsoft.Json.xml
+C:\Users\xingo\Desktop\20134834135\pixiv_demo\pixiv_demo\obj\Debug\pixiv_demo.csprojResolveAssemblyReference.cache
+C:\Users\xingo\Desktop\20134834135\pixiv_demo\pixiv_demo\obj\Debug\pixiv_demo.Form1.resources
+C:\Users\xingo\Desktop\20134834135\pixiv_demo\pixiv_demo\obj\Debug\pixiv_demo.Properties.Resources.resources
+C:\Users\xingo\Desktop\20134834135\pixiv_demo\pixiv_demo\obj\Debug\pixiv_demo.csproj.GenerateResource.Cache
+C:\Users\xingo\Desktop\20134834135\pixiv_demo\pixiv_demo\obj\Debug\pixiv_demo.exe
+C:\Users\xingo\Desktop\20134834135\pixiv_demo\pixiv_demo\obj\Debug\pixiv_demo.pdb
+C:\Users\xingo\Desktop\20134834135\pixiv_demo\pixiv_demo\bin\Debug\pixiv_API.dll
+C:\Users\xingo\Desktop\20134834135\pixiv_demo\pixiv_demo\bin\Debug\pixiv_API.pdb
