@@ -21,15 +21,28 @@ namespace pixiv_demo
         {
             InitializeComponent();
         }
-
+        OAuth auth;
         private void button1_Click(object sender, EventArgs e)
         {
-            OAuth auth = new OAuth(username, password);//please wait for the user has created
-            while (auth.user == null)
+            auth = new OAuth("", "");//please wait for the user has created
+            while (auth.User == null)
             {
-                Thread.Sleep(1000);
+                Thread.Sleep(100);
             }
-            Debug.WriteLine(auth.user.name);
+            Debug.WriteLine(auth.User.name);
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            var pixivAPI = new pixivAPI(auth);
+            foreach (string x in pixivAPI.illust_works_original(textBox1.Text))
+                Debug.WriteLine(x);
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            var pixivAPI = new pixivAPI(auth);
+            auth.DownloadFile(null, pixivAPI.illust_works_original(textBox1.Text)[0]);
         }
     }
 }

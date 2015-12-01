@@ -47,6 +47,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="OAuth.cs" />
+    <Compile Include="pixivAPI.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="pixivUser.cs" />
   </ItemGroup>
