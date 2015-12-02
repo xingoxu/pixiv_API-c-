@@ -26,5 +26,6 @@ All api has been test and the text is at \pixiv_API\api_result\folder (2015-12-2
 ## License:  
 
 Feel free to use, reuse and abuse the code in this project.  
+When you use this API, please [accept the term of pixiv](http://www.pixiv.net/terms/?page=term). The author of the API does not take any responsibility.
   
 Thanks for the author and the APIfounder! 
