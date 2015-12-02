@@ -1,5 +1,5 @@
 language: csharp
-solution: /pixiv_demo/pixiv_demo.sln
+solution: ./pixiv_demo/pixiv_demo.sln
 install:
   - sudo apt-get install -y gtk-sharp2
-  - nuget restore /pixiv_demo/pixiv_demo.sln
+  - nuget restore ./pixiv_demo/pixiv_demo.sln
