@@ -1,4 +1,4 @@
-# pixiv API Encapsulated with C#
+# pixiv API Encapsulated with C# ![build pass](https://travis-ci.org/xingoxu/pixiv_API-c-.svg?branch=master)
 ## translate from [pixivpy](https://github.com/upbit/pixivpy)  
 
 ## Start with:    
