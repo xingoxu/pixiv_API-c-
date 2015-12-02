@@ -214,6 +214,55 @@ namespace pixiv_API
 
             return http.GetAsync(api);
         }
+        public Task<HttpResponseMessage> HttpDeleteAsync(string api, Dictionary<string, object> header, Dictionary<string, object> parameters)
+        {
+            if (user == null)//exclude null exception
+            {
+                Debug.WriteLine("Please login first!");
+                return new Task<HttpResponseMessage>(() =>
+                {
+                    return new HttpResponseMessage(System.Net.HttpStatusCode.BadRequest);
+                });
+            }
+
+            Dictionary<string, object> req_header = new Dictionary<string, object>
+            {
+                {"Referer","http://spapi.pixiv.net/" },//header
+                {"User-Agent","PixivIOSApp/5.8.0" },
+                {"Authorization",("Bearer "+user.access_token) }
+            };
+
+            if (header == null) header = new Dictionary<string, object>();
+            //Add header
+            foreach (KeyValuePair<string, object> x in header)
+            {
+                if (req_header.ContainsKey(x.Key)) req_header[x.Key] = x.Value;
+                else req_header.Add(x.Key, x.Value);
+            }
+
+            http.DefaultRequestHeaders.Clear();
+            foreach (KeyValuePair<string, object> x in req_header)
+            {
+                http.DefaultRequestHeaders.Add(x.Key, (string)x.Value);
+            }
+
+            if (parameters == null) parameters = new Dictionary<string, object>();
+
+            var queryString = string.Join("&", parameters.Where(p => p.Value == null || p.Value.GetType().IsValueType || p.Value.GetType() == typeof(string)).Select(p => string.Format("{0}={1}", Uri.EscapeDataString(p.Key), Uri.EscapeDataString(string.Format("{0}", p.Value)))));
+
+            if (api.IndexOf("?") < 0)
+            {
+                api = string.Format("{0}?{1}", api, queryString);
+            }
+            else
+            {
+                api = string.Format("{0}&{1}", api, queryString);
+            }
+
+            api = api.Trim('&', '?');
+
+            return http.DeleteAsync(api);
+        }
         private string GetNonceString(int length = 8)
         {
             var sb = new StringBuilder();

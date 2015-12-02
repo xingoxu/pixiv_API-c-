@@ -1,0 +1,27 @@
+{
+  "status": "success",
+  "response": [
+    {
+      "is_mutual": false,
+      "id": "576649164",
+      "user_id": "10512403",
+      "publicity": "public",
+      "target_user": {
+        "profile_image_urls": [],
+        "id": "18567",
+        "name": "めばた瞬＠12/29東ル60a",
+        "account": "majihamari",
+        "status": "0"
+      }
+    }
+  ],
+  "count": 1,
+  "pagination": {
+    "previous": null,
+    "next": 2,
+    "current": 1,
+    "per_page": 1,
+    "total": 446,
+    "pages": 446
+  }
+}

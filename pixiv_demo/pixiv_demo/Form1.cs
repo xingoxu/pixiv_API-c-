@@ -24,7 +24,7 @@ namespace pixiv_demo
         OAuth auth;
         private void button1_Click(object sender, EventArgs e)
         {
-            auth = new OAuth("username", "password");//please wait for the user has created
+            auth = new OAuth("xingo", "PokeMon");//please wait for the user has created
             while (auth.User == null)
             {
                 Thread.Sleep(100);
@@ -35,7 +35,7 @@ namespace pixiv_demo
         private void button2_Click(object sender, EventArgs e)
         {
             var pixivAPI = new pixivAPI(auth);
-            Debug.WriteLine(pixivAPI.my_following_works(1, 10));
+            Debug.WriteLine(pixivAPI.search_works(textBox1.Text, 1, 10,"tag","all"));
         }
 
         private void button3_Click(object sender, EventArgs e)
