@@ -228,7 +228,7 @@ namespace pixiv_API
             return sb.ToString();
         }
         #endregion
-        #region wish to do sth with header like download
+        #region wish to do sth with http_header like download
         //though I think that's not properly to put it in OAuth class (should be improved)
         /// <summary>
         /// 以断点续传方式下载文件

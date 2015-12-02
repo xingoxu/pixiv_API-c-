@@ -1,16 +1,30 @@
-# c#的pixiv API(现在正在开发中)
+# pixiv API Encapsulated with C#
+## translate from [pixivpy](https://github.com/upbit/pixivpy)  
 
-目前已经实现：
-OAuth
-illust_works(大图URL)
+## Start with:    
+OAuth  
+use as:  
+OAuth auth=new OAuth(username,password);  
 
+More detail in demo :)  
 
-参考项目（非常感谢他们的作者提供了思路（划掉）（其实就是翻译了一下。。。））：
-https://github.com/upbit/pixivpy
+Require nuget package : [Newtonsoft.Json](http://www.newtonsoft.com/json)
 
+##  APIs
+### for all JObject returns may be null  
 
-引用了nuget上的Json lib
+```csharp  
+public List<string> bad_words()  
+public JObject illust_works(string illust_id)  
+public JObject user_profile(string user_id)   
+public JObject my_feeds(bool show_r18, string max_id) //stats and sanity level is true for default  
+public JObject my_following_works(int page, int per_page)  
+```  
+  
+All api has been test and the text is at \pixiv_API\api_result\folder (2015-12-2)  
 
-仅自用，不保证持续更新
+## License:  
 
-以上，感谢你们的辛勤付出！
+Feel free to use, reuse and abuse the code in this project.  
+  
+Thanks for the author and the APIfounder! 

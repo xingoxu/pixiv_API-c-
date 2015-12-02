@@ -24,7 +24,7 @@ namespace pixiv_demo
         OAuth auth;
         private void button1_Click(object sender, EventArgs e)
         {
-            auth = new OAuth("", "");//please wait for the user has created
+            auth = new OAuth("username", "password");//please wait for the user has created
             while (auth.User == null)
             {
                 Thread.Sleep(100);
@@ -35,8 +35,7 @@ namespace pixiv_demo
         private void button2_Click(object sender, EventArgs e)
         {
             var pixivAPI = new pixivAPI(auth);
-            foreach (string x in pixivAPI.illust_works_original(textBox1.Text))
-                Debug.WriteLine(x);
+            Debug.WriteLine(pixivAPI.my_following_works(1, 10));
         }
 
         private void button3_Click(object sender, EventArgs e)
