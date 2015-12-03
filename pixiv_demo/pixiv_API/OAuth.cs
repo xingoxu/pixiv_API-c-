@@ -5,7 +5,6 @@ using System.Linq;
 using System.Text;
 using System.Net;
 using System.Net.Http;
-
 using System.Threading.Tasks;
 using System.Diagnostics;
 using System.IO;
@@ -20,17 +19,22 @@ namespace pixiv_API
         public pixivUser User { get { return user; } }
         #region base api
         #region login (construct)
-        public OAuth(string username, string password)
+        public OAuth()
         {
             http = new HttpClient(new HttpClientHandler() { CookieContainer = new CookieContainer(), UseCookies = true });
-            authAsync(username, password);
+            Debug.WriteLine("Don't forget to do authAsync first!");
+        }
+        public OAuth(string username, string password)//it's not good enough
+        {
+            http = new HttpClient(new HttpClientHandler() { CookieContainer = new CookieContainer(), UseCookies = true });
+            bool result = authAsync(username, password).Result;
         }
         /// <summary>
         /// Caution: authAsync will new a user
         /// </summary>
         /// <param name="username"></param>
         /// <param name="password"></param>
-        public void authAsync(string username, string password)
+        public async Task<bool> authAsync(string username, string password)
         {
             var parameters = new Dictionary<string, object>
             {
@@ -43,9 +47,9 @@ namespace pixiv_API
                 //before is data
             };
 
-            authAsync(parameters);
+            return await Task.Run(() => authAsync(parameters));
         }
-        private void authAsync(Dictionary<string, object> parameters)
+        private async Task<bool> authAsync(Dictionary<string, object> parameters)
         {
             var header = new Dictionary<string, object>
             {
@@ -53,12 +57,12 @@ namespace pixiv_API
             };
             var api = "https://oauth.secure.pixiv.net/auth/token";//oauth_url
 
-            HttpPostAsync(api, header, parameters).ContinueWith((task) =>
+            return await HttpPostAsync(api, header, parameters).ContinueWith((task) =>
             {
                 if (task.Result.IsSuccessStatusCode)
                 {
                     var json = JObject.Parse(task.Result.Content.ReadAsStringAsync().Result);
-
+                    
                     user = new pixivUser();
                     user.avatar = new string[3];
 
@@ -72,18 +76,20 @@ namespace pixiv_API
                     user.avatar[0] = response["user"]["profile_image_urls"]["px_16x16"].ToString();//0 small
                     user.avatar[1] = response["user"]["profile_image_urls"]["px_50x50"].ToString();//1 middle
                     user.avatar[2] = response["user"]["profile_image_urls"]["px_170x170"].ToString();//2 big
+                    return true;
                 }
                 else
                 {
-                    Debug.WriteLine(task.Result);
+                    return false;
                 }
-            });
+                
+            });            
         }
         /// <summary>
         /// Caution:reAuthAsync will new a user
         /// </summary>
-        public void reAuthAsync() {
-            if (user == null) return;
+        public async Task<bool> reAuthAsync() {
+            if (user == null) return false;
             var parameters = new Dictionary<string, object>
             {
                 { "client_id", "bYGKuGVw91e0NMfPGp44euvGt59s" },
@@ -93,15 +99,15 @@ namespace pixiv_API
                 {"refresh_token",user.refresh_token }
                 //before is data
             };
-            authAsync(parameters);
+            return await authAsync(parameters);
         }
         #endregion
         private HttpClient http;
-        public Task<HttpResponseMessage> HttpPostAsync(string api, Dictionary<string, object> parameters)
+        public async Task<HttpResponseMessage> HttpPostAsync(string api, Dictionary<string, object> parameters)
         {
-            return HttpPostAsync(api, null, parameters);
+            return await HttpPostAsync(api, null, parameters);
         }
-        public Task<HttpResponseMessage> HttpPostAsync(string api, Dictionary<string, object> header, Dictionary<string, object> parameters)
+        public async Task<HttpResponseMessage> HttpPostAsync(string api, Dictionary<string, object> header, Dictionary<string, object> parameters)
         {
             Dictionary<string, object> req_header = new Dictionary<string, object>
             {
@@ -159,21 +165,18 @@ namespace pixiv_API
                 httpContent = content;
             }
 
-            return http.PostAsync(api, httpContent);
+            return await http.PostAsync(api, httpContent);
         }
-        public Task<HttpResponseMessage> HttpGetAsync(string api, Dictionary<string, object> parameters)
+        public async Task<HttpResponseMessage> HttpGetAsync(string api, Dictionary<string, object> parameters)
         {
-            return HttpGetAsync(api, null, parameters);
+            return await HttpGetAsync(api, null, parameters);
         }
-        public Task<HttpResponseMessage> HttpGetAsync(string api, Dictionary<string, object> header, Dictionary<string, object> parameters)
+        public async Task<HttpResponseMessage> HttpGetAsync(string api, Dictionary<string, object> header, Dictionary<string, object> parameters)
         {
             if (user == null)//exclude null exception
             {
                 Debug.WriteLine("Please login first!");
-                return new Task<HttpResponseMessage>(() =>
-                {
-                    return new HttpResponseMessage(System.Net.HttpStatusCode.BadRequest);
-                });
+                return new HttpResponseMessage(System.Net.HttpStatusCode.BadRequest);                
             }
 
             Dictionary<string, object> req_header = new Dictionary<string, object>
@@ -212,17 +215,14 @@ namespace pixiv_API
 
             api = api.Trim('&', '?');
 
-            return http.GetAsync(api);
+            return await http.GetAsync(api);
         }
-        public Task<HttpResponseMessage> HttpDeleteAsync(string api, Dictionary<string, object> header, Dictionary<string, object> parameters)
+        public async Task<HttpResponseMessage> HttpDeleteAsync(string api, Dictionary<string, object> header, Dictionary<string, object> parameters)
         {
             if (user == null)//exclude null exception
             {
                 Debug.WriteLine("Please login first!");
-                return new Task<HttpResponseMessage>(() =>
-                {
-                    return new HttpResponseMessage(System.Net.HttpStatusCode.BadRequest);
-                });
+                return new HttpResponseMessage(System.Net.HttpStatusCode.BadRequest);                
             }
 
             Dictionary<string, object> req_header = new Dictionary<string, object>
@@ -261,7 +261,7 @@ namespace pixiv_API
 
             api = api.Trim('&', '?');
 
-            return http.DeleteAsync(api);
+            return await http.DeleteAsync(api);
         }
         private string GetNonceString(int length = 8)
         {
@@ -277,100 +277,115 @@ namespace pixiv_API
             return sb.ToString();
         }
         #endregion
-        #region wish to do sth with http_header like download
-        //though I think that's not properly to put it in OAuth class (should be improved)
         /// <summary>
-        /// 以断点续传方式下载文件
+        /// it's a new base api which can use it to download picture:)
         /// </summary>
-        /// <param name="strFileName">下载文件的保存路径</param>
-        /// <param name="strUrl">文件下载地址</param>
-        public void DownloadFile(string strPathName, string strUrl)
+        /// <param name="strPathName"></param>
+        /// <param name="strUrl"></param>
+        public async Task<Stream> HttpGetStreamAsync(Dictionary<string, object> header, string strUrl)
         {
             if (user == null)//exclude null exception
             {
                 Debug.WriteLine("Please login first!");
-                return;
+                return null;
             }
 
-            Dictionary<string, string> req_header = new Dictionary<string, string>
+            Dictionary<string, object> req_header = new Dictionary<string, object>
             {
                 {"Referer","http://spapi.pixiv.net/" },//header
-                {"User-Agent","PixivIOSApp/5.8.0" },
+                {"User-Agent","PixivIOSApp/5.8.3" },
                 {"Authorization",("Bearer "+user.access_token) }
             };
 
-            //打开上次下载的文件或新建文件
-            int CompletedLength = 0;//记录已完成的大小            
-
-            FileStream FStream = null;
-            //打开网络连接
-            try
+            if (header == null) header = new Dictionary<string, object>();
+            //Add header
+            foreach (KeyValuePair<string, object> x in header)
             {
-                HttpWebRequest myRequest = (HttpWebRequest)HttpWebRequest.Create(strUrl);
-
-                foreach(KeyValuePair<string,string> x in req_header)
-                {
-                    if (x.Key.Equals("Referer")) myRequest.Referer = req_header["Referer"];
-                    else if (x.Key.Equals("User-Agent")) myRequest.UserAgent = req_header["User-Agent"];
-                    else
-                        myRequest.Headers.Add(x.Key, x.Value);
-                }
-
-
-                if (CompletedLength > 0)
-                    myRequest.AddRange((int)CompletedLength);//设置Range值
-                //向服务器请求，获得服务器的回应数据流
-                HttpWebResponse webResponse = (HttpWebResponse)myRequest.GetResponse();
-                #region get FileName
-                string FileName;
-                try {
-                    FileName = webResponse.GetResponseHeader("Content-Disposition");//haven't got so I can't write more about this
-                    Debug.WriteLine(FileName);
-                }
-                catch
-                {
-                    string[] x = strUrl.Split('/');
-                    FileName = x[x.Length - 1];
-                }
-                FileName.Trim(' ');
-                if (FileName == null || FileName == "")
-                {
-                    string[] x = strUrl.Split('/');
-                    FileName = x[x.Length - 1];
-                }
-                #endregion
-
-                string fileRoute = "";
-                if (strPathName == null) fileRoute = FileName;
-                else fileRoute = strPathName + '/' + FileName; 
-
-                if (File.Exists(fileRoute)) File.Delete(fileRoute);
-                FStream = new FileStream(fileRoute, FileMode.Create);
-
-                //FileLength = webResponse.ContentLength;//文件大小 （总长度）
-                Stream myStream = webResponse.GetResponseStream();
-                byte[] btContent = new byte[1024];
-                //if (count <= 0) count += sPosstion;//断点下载预留
-
-                while ((CompletedLength = myStream.Read(btContent, 0, 1024)) > 0)
-                {
-                    FStream.Write(btContent, 0, CompletedLength);
-               //     count += CompletedLength;//记录下载到多少
-                }
-                FStream.Close();
-                myStream.Close();
+                if (req_header.ContainsKey(x.Key)) req_header[x.Key] = x.Value;
+                else req_header.Add(x.Key, x.Value);
             }
-            catch(Exception e)
+
+            http.DefaultRequestHeaders.Clear();
+            foreach (KeyValuePair<string, object> x in req_header)
             {
-                Debug.WriteLine(e);
-                if (FStream != null)
-                {
-                    FStream.Close();
-                    FStream.Dispose();
-                }
+                http.DefaultRequestHeaders.Add(x.Key, (string)x.Value);
             }
+
+            return await http.GetStreamAsync(strUrl);
+            
+
+
+
+            
+            //The following captions are the old download file method backup
+
+
+            ////打开网络连接
+            //try
+            //{
+            //    HttpWebRequest myRequest = (HttpWebRequest)HttpWebRequest.Create(strUrl);
+
+            //    foreach(KeyValuePair<string,string> x in req_header)
+            //    {
+            //        if (x.Key.Equals("Referer")) myRequest.Referer = req_header["Referer"];
+            //        else if (x.Key.Equals("User-Agent")) myRequest.UserAgent = req_header["User-Agent"];
+            //        else
+            //            myRequest.Headers.Add(x.Key, x.Value);
+            //    }
+
+
+            //    if (CompletedLength > 0)
+            //        myRequest.AddRange((int)CompletedLength);//设置Range值
+            //    //向服务器请求，获得服务器的回应数据流
+            //    HttpWebResponse webResponse = (HttpWebResponse)myRequest.GetResponse();
+            //    #region get FileName
+            //    string FileName;
+            //    try {
+            //        FileName = webResponse.GetResponseHeader("Content-Disposition");//haven't got so I can't write more about this
+            //        Debug.WriteLine(FileName);
+            //    }
+            //    catch
+            //    {
+            //        string[] x = strUrl.Split('/');
+            //        FileName = x[x.Length - 1];
+            //    }
+            //    FileName.Trim(' ');
+            //    if (FileName == null || FileName == "")
+            //    {
+            //        string[] x = strUrl.Split('/');
+            //        FileName = x[x.Length - 1];
+            //    }
+            //    #endregion
+
+            //    string fileRoute = "";
+            //    if (strPathName == null) fileRoute = FileName;
+            //    else fileRoute = strPathName + '/' + FileName; 
+
+            //    if (File.Exists(fileRoute)) File.Delete(fileRoute);
+            //    FStream = new FileStream(fileRoute, FileMode.Create);
+
+            //    //FileLength = webResponse.ContentLength;//文件大小 （总长度）
+            //    Stream myStream = webResponse.GetResponseStream();
+            //    byte[] btContent = new byte[1024];
+            //    //if (count <= 0) count += sPosstion;//断点下载预留
+
+            //    while ((CompletedLength = myStream.Read(btContent, 0, 1024)) > 0)
+            //    {
+            //        FStream.Write(btContent, 0, CompletedLength);
+            //   //     count += CompletedLength;//记录下载到多少
+            //    }
+            //    FStream.Close();
+            //    myStream.Close();
+            //}
+            //catch(Exception e)
+            //{
+            //    Debug.WriteLine(e);
+            //    if (FStream != null)
+            //    {
+            //        FStream.Close();
+            //        FStream.Dispose();
+            //    }
+            //}
         }
-
-        #endregion
     }
 }

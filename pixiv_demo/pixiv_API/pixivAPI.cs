@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -505,6 +505,56 @@ namespace pixiv_API
             }
 
             return JObject.Parse(task.Result.Content.ReadAsStringAsync().Result);
+        }
+        /// <summary>
+        /// a download file method with async (may support pause download in future)
+        /// </summary>
+        /// <param name="strPathName"></param>
+        /// <param name="strUrl"></param>
+        /// <param name="header">request header</param>
+        /// <returns>fileRoute(include fileName)</returns>
+        public async Task<string> DownloadFileAsync(string strPathName, string strUrl, Dictionary<string, object> header = null)
+        {
+            var task = oauth.HttpGetStreamAsync(header, strUrl);
+
+            //打开上次下载的文件或新建文件
+            int CompletedLength = 0;//记录已完成的大小    
+
+
+            FileStream FStream = null;
+
+            #region get FileName
+            string FileName;
+
+            string[] split = strUrl.Split('/');
+            FileName = split[split.Length - 1];
+
+            FileName.Trim(' ');
+
+
+            #endregion
+
+            string fileRoute = "";
+            if (strPathName == null) fileRoute = FileName;
+            else {
+                fileRoute = strPathName + '/' + FileName;
+                if (!Directory.Exists(strPathName)) Directory.CreateDirectory(strPathName);
+            }
+            if (File.Exists(fileRoute)) File.Delete(fileRoute);
+            FStream = new FileStream(fileRoute, FileMode.Create);
+
+            byte[] btContent = new byte[1024];
+
+            Stream myStream = await task;
+
+            while ((CompletedLength = myStream.Read(btContent, 0, 1024)) > 0)
+            {
+                FStream.Write(btContent, 0, CompletedLength);
+
+            }
+            FStream.Close();
+            myStream.Close();
+            return fileRoute;
         }
     }
 }

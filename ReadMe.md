@@ -2,20 +2,23 @@
 ### translate from [pixivpy](https://github.com/upbit/pixivpy)  
 
 ## Start with OAuth:    
- 
-OAuth auth=new OAuth(username,password);  
-
+  
+OAuth auth=new OAuth();  
+bool result=await auth.authAsync(username,password);  
+if(result) pixivAPI pixivAPI=new pixivAPI(auth);  
+  
 More detail in demo :)  
 
-Require nuget package : [Newtonsoft.Json](http://www.newtonsoft.com/json)
-
+##Requirements:  
+.Net: 4.5 or upper  
+nuget package : [Newtonsoft.Json](http://www.newtonsoft.com/json)  
+  
 ##  APIs  
 ### Update Information:  
 Update information are placed at here.  
+* [2015-12-03]　update demo and adjust some async method
 * [2015-12-03]　update APIs with [pixivpy](https://github.com/upbit/pixivpy)
-* 　　　　　　　my_favourite_users api has been removed because of its expected returns
-* 　　　　　　　the rest of the usage of apis haven't been changed
-* 　　　　　　　from now on apis won't be changed or deleted unless pixiv has changed it
+* 　　　　　　　my_favourite_users api has been removed because of its unexpected returns
 * [2015-12-02]　added most of apis
 
 ### Notice:   
@@ -61,6 +64,8 @@ public JObject ranking(string ranking_type,string mode,int page,int per_page,str
 public JObject search_works(string query, int page, int per_page, string mode = "text", string period = "all", string order = "desc", string sort = "date", bool include_stats = true, bool include_sanity_level = true,bool show_r18=true)
 
 public JObject latest_works(int page = 1, int per_page = 30,bool include_stats=true,bool include_sanity_level=true)
+  
+public async Task<string> DownloadFileAsync(string strPathName, string strUrl, Dictionary<string, object> header = null)  
 ```  
   
 [2015-12-02] All api has been test and the result text is at ./pixiv_API/api_result folder  
