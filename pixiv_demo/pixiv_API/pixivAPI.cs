@@ -50,7 +50,7 @@ namespace pixiv_API
 
             return result;
         }
-        public JObject illust_works(string illust_id) 
+        public JObject illust_work(string illust_id) 
         {
             string url = ("https://public-api.secure.pixiv.net/v1/works/" + illust_id + ".json");
             var parameters = new Dictionary<string, object>(){
@@ -68,9 +68,9 @@ namespace pixiv_API
 
             return JObject.Parse(task.Result.Content.ReadAsStringAsync().Result);
         }
-        public List<string> illust_works_original(string illust_id)
+        public List<string> illust_work_originalPicURL(string illust_id)
         {
-            var json = illust_works(illust_id);
+            var json = illust_work(illust_id);
 
             if (json == null) return new List<string>();
 
@@ -149,15 +149,15 @@ namespace pixiv_API
 
             return JObject.Parse(task.Result.Content.ReadAsStringAsync().Result);
         }
-        public JObject my_following_works(int page, int per_page)
+        public JObject my_following_works(int page, int per_page, bool include_stats = true, bool include_sanity_level = true)//关注的人的新作品
         {
             string url = "https://public-api.secure.pixiv.net/v1/me/following/works.json";
             var parameters = new Dictionary<string, object>{
                {"page",page},
                {"per_page", per_page},
                {"image_sizes","px_128x128,px_480mw,large"},
-               {"include_stats",true},//score and score count
-               {"include_sanity_level",true}//unknown
+               {"include_stats",include_stats},//score and score count
+               {"include_sanity_level",include_sanity_level}//unknown
             };
 
             var task = oauth.HttpGetAsync(url, parameters);
@@ -170,13 +170,16 @@ namespace pixiv_API
 
             return JObject.Parse(task.Result.Content.ReadAsStringAsync().Result);
         }
-        public JObject my_favourite_works(int page,int per_page)
+        public JObject my_favourite_works(int page,int per_page,bool IsPublic)//收藏夹作品
         {
             string url = "https://public-api.secure.pixiv.net/v1/me/favorite_works.json";
+            string publicity = "private";
+            if (IsPublic) publicity = "public";
             var parameters = new Dictionary<string, object>{
                {"page",page},
                {"per_page", per_page},
-               {"image_sizes","px_128x128,px_480mw,large"}
+               {"image_sizes","px_128x128,px_480mw,large"},
+               {"publicity",publicity }
             };
 
             var task = oauth.HttpGetAsync(url, parameters);
@@ -189,7 +192,7 @@ namespace pixiv_API
 
             return JObject.Parse(task.Result.Content.ReadAsStringAsync().Result);
         }
-        public bool my_favourite_works_add(string work_id,bool ispublic)
+        public bool my_favourite_work_add(string work_id,bool ispublic)
         {
             string url = "https://public-api.secure.pixiv.net/v1/me/favorite_works.json";
             string publicity = "private";
@@ -209,11 +212,11 @@ namespace pixiv_API
 
             return true;
         }
-        public bool my_favourite_works_delete(string favourite_id)
+        public bool my_favourite_works_delete(string favourite_ids)//原API上注明需要输入publicity参数，经测试无需输入，都可以删除
         {
             string url = "https://public-api.secure.pixiv.net/v1/me/favorite_works.json";
             var parameters = new Dictionary<string, object>{
-               {"ids",favourite_id}
+               {"ids",favourite_ids}
             };
 
             var task = oauth.HttpDeleteAsync(url, null, parameters);
@@ -246,27 +249,27 @@ namespace pixiv_API
             }
 
             return JObject.Parse(task.Result.Content.ReadAsStringAsync().Result);
-        }
-        #region Experimental Method
-        public JObject my_favourite_users(int page)//same as my_following_user
-        {
-            string url = "https://public-api.secure.pixiv.net/v1/me/favorite-users.json";
-            var parameters = new Dictionary<string, object>()
-            {
-                {"page",page }
-            };
+        }      
+        //my_favourite_users api has been removed because of its unexpcted returns
+        //public JObject my_favourite_users(int page)//same as my_following_user
+        //{
+        //    string url = "https://public-api.secure.pixiv.net/v1/me/favorite-users.json";
+        //    var parameters = new Dictionary<string, object>()
+        //    {
+        //        {"page",page }
+        //    };
 
-            var task = oauth.HttpGetAsync(url, parameters);
+        //    var task = oauth.HttpGetAsync(url, parameters);
 
-            if (!task.Result.IsSuccessStatusCode)
-            {
-                Debug.WriteLine(task.Result);
-                return null;
-            }
+        //    if (!task.Result.IsSuccessStatusCode)
+        //    {
+        //        Debug.WriteLine(task.Result);
+        //        return null;
+        //    }
 
-            return JObject.Parse(task.Result.Content.ReadAsStringAsync().Result);
-        }
-        public bool my_favourite_users_follow(string user_id,bool IsPublic)
+        //    return JObject.Parse(task.Result.Content.ReadAsStringAsync().Result);
+        //}
+        public bool my_favourite_user_follow(string user_id,bool IsPublic)
         {
             string url = "https://public-api.secure.pixiv.net/v1/me/favorite-users.json";
             string publicity = "private";
@@ -292,12 +295,12 @@ namespace pixiv_API
         /// </summary>
         /// <param name="author_ids">can put more than 2 id at here, use ',' to split them</param>
         /// <returns></returns>
-        public bool my_favourite_users_unfollow(string author_ids)
+        public bool my_favourite_users_unfollow(string user_ids)
         {
             string url = "https://public-api.secure.pixiv.net/v1/me/favorite-users.json";
             var parameters = new Dictionary<string, object>
             {
-                {"delete_ids",author_ids }
+                {"delete_ids",user_ids }
             };
 
             var task = oauth.HttpDeleteAsync(url, null, parameters);
@@ -309,17 +312,16 @@ namespace pixiv_API
             }
             return true;
         }
-        #endregion
-        public JObject user_works(string author_id, int page, int per_page)
+        public JObject user_works(string user_id, int page, int per_page, bool include_stats = true, bool include_sanity_level = true)
         {
-            string url = string.Format("https://public-api.secure.pixiv.net/v1/users/{0}/works.json", author_id);
+            string url = string.Format("https://public-api.secure.pixiv.net/v1/users/{0}/works.json", user_id);
 
             var parameters = new Dictionary<string, object>{
                {"page",page},
                {"per_page", per_page},
                {"image_sizes","px_128x128,px_480mw,large"},
-               {"include_stats",true},//score and score count
-               {"include_sanity_level",true}//unknown
+               {"include_stats",include_stats},//score and score count
+               {"include_sanity_level",include_sanity_level}//unknown
             };
 
             var task = oauth.HttpGetAsync(url, parameters);
@@ -332,9 +334,9 @@ namespace pixiv_API
 
             return JObject.Parse(task.Result.Content.ReadAsStringAsync().Result);
         }
-        public JObject user_favourite_works(string author_id,int page,int per_page)
+        public JObject user_favourite_works(string user_id,int page,int per_page)
         {
-            string url = string.Format("https://public-api.secure.pixiv.net/v1/users/{0}/favorite_works.json", author_id);
+            string url = string.Format("https://public-api.secure.pixiv.net/v1/users/{0}/favorite_works.json", user_id);
 
             var parameters = new Dictionary<string, object>{
                {"page",page},
@@ -360,9 +362,9 @@ namespace pixiv_API
         /// <param name="show_r18"></param>
         /// <param name="max_id">start from illust_id (can be null)</param>
         /// <returns></returns>
-        public JObject user_feeds(string author_id,bool show_r18,string max_id)
+        public JObject user_feeds(string user_id,bool show_r18,string max_id)
         {
-            string url = string.Format("https://public-api.secure.pixiv.net/v1/users/{0}/feeds.json", author_id);
+            string url = string.Format("https://public-api.secure.pixiv.net/v1/users/{0}/feeds.json", user_id);
 
             int r18 = 0;
             if (show_r18) r18 = 1;
@@ -384,9 +386,9 @@ namespace pixiv_API
 
             return JObject.Parse(task.Result.Content.ReadAsStringAsync().Result);
         }
-        public JObject user_following_users(string author_id,int page,int per_page)
+        public JObject user_following_users(string user_id,int page,int per_page)
         {
-            string url = string.Format("https://public-api.secure.pixiv.net/v1/users/{0}/following.json", author_id);
+            string url = string.Format("https://public-api.secure.pixiv.net/v1/users/{0}/following.json", user_id);
             var parameters = new Dictionary<string, object>()
             {
                 {"page",page },
@@ -438,15 +440,15 @@ namespace pixiv_API
             return JObject.Parse(task.Result.Content.ReadAsStringAsync().Result);
         }
         /// <summary>
-        /// some parameters unknown
+        /// search api only sort with date
         /// </summary>
         /// <param name="query">query string</param>
-        /// <param name="page"></param>
+        /// <param name="page">1-n</param>
         /// <param name="per_page"></param>
-        /// <param name="mode">[text,tag,caption] text means title/caption</param>
-        /// <param name="period">unknown</param>
-        /// <param name="order">unknown</param>
-        /// <param name="sort">unknown</param>
+        /// <param name="mode">[text,tag,caption,exact_tag] text means title/caption</param>
+        /// <param name="period">[all,day,week,month]</param>
+        /// <param name="order">[desc,asc] desc(new to old),asc(old to new)</param>
+        /// <param name="sort">just "date"</param>
         /// <param name="show_r18">true or false</param>
         /// <returns></returns>
         public JObject search_works(string query, int page, int per_page, string mode = "text", string period = "all", string order = "desc", string sort = "date", bool include_stats = true, bool include_sanity_level = true,bool show_r18=true)
@@ -481,14 +483,17 @@ namespace pixiv_API
             return JObject.Parse(task.Result.Content.ReadAsStringAsync().Result);
         }
 
-        public JObject latest_works(int page = 1, int per_page = 30)
+        public JObject latest_works(int page = 1, int per_page = 30,bool include_stats=true,bool include_sanity_level=true)
         {
             string url = "https://public-api.secure.pixiv.net/v1/works.json";
             var parameters = new Dictionary<string, object>()
             {
                 {"page",page },
                 {"per_page",per_page },
-                {"image_sizes","px_128x128,px_480mw,large"}
+                {"include_stats",include_stats },
+                {"include_sanity_level",include_sanity_level },
+                {"image_sizes","px_128x128,px_480mw,large"},
+                {"profile_image_sizes","px_170x170,px_50x50" }
             };
 
             var task = oauth.HttpGetAsync(url, parameters);

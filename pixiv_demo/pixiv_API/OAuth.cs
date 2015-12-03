@@ -106,7 +106,7 @@ namespace pixiv_API
             Dictionary<string, object> req_header = new Dictionary<string, object>
             {
                 {"Referer","http://spapi.pixiv.net/" },//header
-                {"User-Agent","PixivIOSApp/5.8.0" }
+                {"User-Agent","PixivIOSApp/5.8.3" }
             };
 
             if (user != null) req_header.Add("Authorization", ("Bearer " + user.access_token));
@@ -179,7 +179,7 @@ namespace pixiv_API
             Dictionary<string, object> req_header = new Dictionary<string, object>
             {
                 {"Referer","http://spapi.pixiv.net/" },//header
-                {"User-Agent","PixivIOSApp/5.8.0" },
+                {"User-Agent","PixivIOSApp/5.8.3" },
                 {"Authorization",("Bearer "+user.access_token) }
             };
 
@@ -228,7 +228,7 @@ namespace pixiv_API
             Dictionary<string, object> req_header = new Dictionary<string, object>
             {
                 {"Referer","http://spapi.pixiv.net/" },//header
-                {"User-Agent","PixivIOSApp/5.8.0" },
+                {"User-Agent","PixivIOSApp/5.8.3" },
                 {"Authorization",("Bearer "+user.access_token) }
             };
 
