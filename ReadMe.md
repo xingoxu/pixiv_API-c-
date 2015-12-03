@@ -12,11 +12,11 @@ Require nuget package : [Newtonsoft.Json](http://www.newtonsoft.com/json)
 ##  APIs  
 ### Update Information:  
 Update information are placed at here.  
-* [2015-12-03] update APIs with [pixivpy](https://github.com/upbit/pixivpy)
-*             my_favourite_users api has been removed because of its expected returns
-*             the rest of the usage of apis haven't been changed
-*             from now on apis won't be changed or deleted unless pixiv has changed it
-* [2015-12-02] added most of apis
+* [2015-12-03]　update APIs with [pixivpy](https://github.com/upbit/pixivpy)
+* 　　　　　　　my_favourite_users api has been removed because of its expected returns
+* 　　　　　　　the rest of the usage of apis haven't been changed
+* 　　　　　　　from now on apis won't be changed or deleted unless pixiv has changed it
+* [2015-12-02]　added most of apis
 
 ### Notice:   
 1. for all returns may be null(network problem)  
