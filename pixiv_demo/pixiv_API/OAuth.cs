@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Net;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Diagnostics;
 using System.IO;
@@ -18,7 +19,7 @@ namespace pixiv_API
         private pixivUser user;
         public pixivUser User { get { return user; } }
         #region base api
-        #region login (construct)
+        #region login
         public OAuth()
         {
             http = new HttpClient(new HttpClientHandler() { CookieContainer = new CookieContainer(), UseCookies = true });
@@ -34,7 +35,7 @@ namespace pixiv_API
         /// </summary>
         /// <param name="username"></param>
         /// <param name="password"></param>
-        public async Task<bool> authAsync(string username, string password)
+        public async Task<bool> authAsync(string username, string password, CancellationTokenSource tokensource = null)
         {
             var parameters = new Dictionary<string, object>
             {
@@ -47,9 +48,9 @@ namespace pixiv_API
                 //before is data
             };
 
-            return await Task.Run(() => authAsync(parameters));
+            return await authAsync(parameters, tokensource);
         }
-        private async Task<bool> authAsync(Dictionary<string, object> parameters)
+        private async Task<bool> authAsync(Dictionary<string, object> parameters, CancellationTokenSource tokensource = null)
         {
             var header = new Dictionary<string, object>
             {
@@ -57,12 +58,17 @@ namespace pixiv_API
             };
             var api = "https://oauth.secure.pixiv.net/auth/token";//oauth_url
 
-            return await HttpPostAsync(api, header, parameters).ContinueWith((task) =>
+            Task<HttpResponseMessage> taskpost;
+
+
+            taskpost = HttpPostAsync(api, header, parameters, tokensource);
+
+            return await taskpost.ContinueWith((task) =>
             {
                 if (task.Result.IsSuccessStatusCode)
                 {
                     var json = JObject.Parse(task.Result.Content.ReadAsStringAsync().Result);
-                    
+
                     user = new pixivUser();
                     user.avatar = new string[3];
 
@@ -82,13 +88,13 @@ namespace pixiv_API
                 {
                     return false;
                 }
-                
-            });            
+
+            }, tokensource.Token);            
         }
         /// <summary>
         /// Caution:reAuthAsync will new a user
         /// </summary>
-        public async Task<bool> reAuthAsync() {
+        public async Task<bool> reAuthAsync(CancellationTokenSource tokensource = null) {
             if (user == null) return false;
             var parameters = new Dictionary<string, object>
             {
@@ -99,15 +105,15 @@ namespace pixiv_API
                 {"refresh_token",user.refresh_token }
                 //before is data
             };
-            return await authAsync(parameters);
+            return await authAsync(parameters, tokensource);
         }
         #endregion
         private HttpClient http;
-        public async Task<HttpResponseMessage> HttpPostAsync(string api, Dictionary<string, object> parameters)
+        public async Task<HttpResponseMessage> HttpPostAsync(string api, Dictionary<string, object> parameters, CancellationTokenSource tokensource = null)
         {
-            return await HttpPostAsync(api, null, parameters);
+            return await HttpPostAsync(api, null, parameters, tokensource);
         }
-        public async Task<HttpResponseMessage> HttpPostAsync(string api, Dictionary<string, object> header, Dictionary<string, object> parameters)
+        public async Task<HttpResponseMessage> HttpPostAsync(string api, Dictionary<string, object> header, Dictionary<string, object> parameters, CancellationTokenSource tokensource = null)
         {
             Dictionary<string, object> req_header = new Dictionary<string, object>
             {
@@ -164,14 +170,61 @@ namespace pixiv_API
                 var content = new FormUrlEncodedContent(dict.ToDictionary(k => k.Key, v => string.Format("{0}", v.Value)));
                 httpContent = content;
             }
-
-            return await http.PostAsync(api, httpContent);
+            if (tokensource == null)
+                return await http.PostAsync(api, httpContent);
+            else return await http.PostAsync(api, httpContent, tokensource.Token);
         }
-        public async Task<HttpResponseMessage> HttpGetAsync(string api, Dictionary<string, object> parameters)
+        public async Task<HttpResponseMessage> HttpGetAsync(string api, Dictionary<string, object> parameters, CancellationTokenSource tokensource = null)
         {
-            return await HttpGetAsync(api, null, parameters);
+            return await HttpGetAsync(api, null, parameters, tokensource);
         }
-        public async Task<HttpResponseMessage> HttpGetAsync(string api, Dictionary<string, object> header, Dictionary<string, object> parameters)
+        public async Task<HttpResponseMessage> HttpGetAsync(string api, Dictionary<string, object> header, Dictionary<string, object> parameters, CancellationTokenSource tokensource = null)
+        {
+            if (user == null)//exclude null exception
+            {
+                Debug.WriteLine("Please login first!");
+                return new HttpResponseMessage(System.Net.HttpStatusCode.BadRequest);
+            }
+
+            Dictionary<string, object> req_header = new Dictionary<string, object>
+            {
+                {"Referer","http://spapi.pixiv.net/" },//header
+                {"User-Agent","PixivIOSApp/5.8.3" },
+                {"Authorization",("Bearer "+user.access_token) }
+            };
+
+            if (header == null) header = new Dictionary<string, object>();
+            //Add header
+            foreach (KeyValuePair<string, object> x in header)
+            {
+                if (req_header.ContainsKey(x.Key)) req_header[x.Key] = x.Value;
+                else req_header.Add(x.Key, x.Value);
+            }
+
+            http.DefaultRequestHeaders.Clear();
+            foreach (KeyValuePair<string, object> x in req_header)
+            {
+                http.DefaultRequestHeaders.Add(x.Key, (string)x.Value);
+            }
+
+            if (parameters == null) parameters = new Dictionary<string, object>();
+
+            var queryString = string.Join("&", parameters.Where(p => p.Value == null || p.Value.GetType().IsValueType || p.Value.GetType() == typeof(string)).Select(p => string.Format("{0}={1}", Uri.EscapeDataString(p.Key), Uri.EscapeDataString(string.Format("{0}", p.Value)))));
+
+            if (api.IndexOf("?") < 0)
+            {
+                api = string.Format("{0}?{1}", api, queryString);
+            }
+            else
+            {
+                api = string.Format("{0}&{1}", api, queryString);
+            }
+
+            api = api.Trim('&', '?');
+            if (tokensource == null) return await http.GetAsync(api);
+            return await http.GetAsync(api, tokensource.Token);
+        }
+        public async Task<HttpResponseMessage> HttpDeleteAsync(string api, Dictionary<string, object> header, Dictionary<string, object> parameters, CancellationTokenSource tokensource = null)
         {
             if (user == null)//exclude null exception
             {
@@ -215,53 +268,9 @@ namespace pixiv_API
 
             api = api.Trim('&', '?');
 
-            return await http.GetAsync(api);
-        }
-        public async Task<HttpResponseMessage> HttpDeleteAsync(string api, Dictionary<string, object> header, Dictionary<string, object> parameters)
-        {
-            if (user == null)//exclude null exception
-            {
-                Debug.WriteLine("Please login first!");
-                return new HttpResponseMessage(System.Net.HttpStatusCode.BadRequest);                
-            }
-
-            Dictionary<string, object> req_header = new Dictionary<string, object>
-            {
-                {"Referer","http://spapi.pixiv.net/" },//header
-                {"User-Agent","PixivIOSApp/5.8.3" },
-                {"Authorization",("Bearer "+user.access_token) }
-            };
-
-            if (header == null) header = new Dictionary<string, object>();
-            //Add header
-            foreach (KeyValuePair<string, object> x in header)
-            {
-                if (req_header.ContainsKey(x.Key)) req_header[x.Key] = x.Value;
-                else req_header.Add(x.Key, x.Value);
-            }
-
-            http.DefaultRequestHeaders.Clear();
-            foreach (KeyValuePair<string, object> x in req_header)
-            {
-                http.DefaultRequestHeaders.Add(x.Key, (string)x.Value);
-            }
-
-            if (parameters == null) parameters = new Dictionary<string, object>();
-
-            var queryString = string.Join("&", parameters.Where(p => p.Value == null || p.Value.GetType().IsValueType || p.Value.GetType() == typeof(string)).Select(p => string.Format("{0}={1}", Uri.EscapeDataString(p.Key), Uri.EscapeDataString(string.Format("{0}", p.Value)))));
-
-            if (api.IndexOf("?") < 0)
-            {
-                api = string.Format("{0}?{1}", api, queryString);
-            }
-            else
-            {
-                api = string.Format("{0}&{1}", api, queryString);
-            }
-
-            api = api.Trim('&', '?');
-
-            return await http.DeleteAsync(api);
+            if (tokensource == null)
+                return await http.DeleteAsync(api);
+            return await http.DeleteAsync(api, tokensource.Token);
         }
         private string GetNonceString(int length = 8)
         {
@@ -276,13 +285,13 @@ namespace pixiv_API
             }
             return sb.ToString();
         }
-        #endregion
         /// <summary>
         /// it's a new base api which can use it to download picture:)
         /// </summary>
-        /// <param name="strPathName"></param>
+        /// <param name="header">reqest header (can be null)</param>
         /// <param name="strUrl"></param>
-        public async Task<Stream> HttpGetStreamAsync(Dictionary<string, object> header, string strUrl)
+        /// <returns></returns>
+        public async Task<Stream> HttpGetStreamAsync(Dictionary<string, object> header, string strUrl, CancellationTokenSource tokensource = null)
         {
             if (user == null)//exclude null exception
             {
@@ -307,16 +316,17 @@ namespace pixiv_API
 
             http.DefaultRequestHeaders.Clear();
             foreach (KeyValuePair<string, object> x in req_header)
-            {
                 http.DefaultRequestHeaders.Add(x.Key, (string)x.Value);
-            }
+            
 
+            if (tokensource != null)
+                return await Task.Run(() => { return http.GetStreamAsync(strUrl); }, tokensource.Token);
             return await http.GetStreamAsync(strUrl);
-            
 
 
 
-            
+
+
             //The following captions are the old download file method backup
 
 
@@ -387,5 +397,6 @@ namespace pixiv_API
             //    }
             //}
         }
+        #endregion
     }
 }

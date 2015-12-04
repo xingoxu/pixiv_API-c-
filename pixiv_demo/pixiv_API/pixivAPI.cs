@@ -1,10 +1,11 @@
 ﻿using System.IO;
 using System.Collections.Generic;
-using System.Linq;
+using System;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using System.Diagnostics;
+using System.Threading;
 
 namespace pixiv_API
 {
@@ -50,7 +51,7 @@ namespace pixiv_API
 
             return result;
         }
-        public JObject illust_work(string illust_id) 
+        public JObject illust_work(string illust_id)
         {
             string url = ("https://public-api.secure.pixiv.net/v1/works/" + illust_id + ".json");
             var parameters = new Dictionary<string, object>(){
@@ -58,15 +59,15 @@ namespace pixiv_API
                    { "include_stats","true" }
             };
 
-            var task = oauth.HttpGetAsync(url, parameters);
+            var response = oauth.HttpGetAsync(url, parameters).Result;
 
-            if (!task.Result.IsSuccessStatusCode)
+            if (!response.IsSuccessStatusCode)
             {
-                Debug.WriteLine(task.Result);
+                Debug.WriteLine(response);
                 return null;
             }
 
-            return JObject.Parse(task.Result.Content.ReadAsStringAsync().Result);
+            return JObject.Parse(response.Content.ReadAsStringAsync().Result);
         }
         public List<string> illust_work_originalPicURL(string illust_id)
         {
@@ -75,6 +76,7 @@ namespace pixiv_API
             if (json == null) return new List<string>();
 
             List<string> result = new List<string>();
+            
             foreach (JObject response in json.Value<JArray>("response"))//though now it will be only one response
             {
 
@@ -507,54 +509,84 @@ namespace pixiv_API
             return JObject.Parse(task.Result.Content.ReadAsStringAsync().Result);
         }
         /// <summary>
-        /// a download file method with async (may support pause download in future)
+        /// a download file method with async (but pixiv server doesn't support resume download)
         /// </summary>
         /// <param name="strPathName"></param>
         /// <param name="strUrl"></param>
-        /// <param name="header">request header</param>
-        /// <returns>fileRoute(include fileName)</returns>
-        public async Task<string> DownloadFileAsync(string strPathName, string strUrl, Dictionary<string, object> header = null)
+        /// <param name="header"></param>
+        /// <param name="tokensource"></param>
+        /// <returns>fileroute (include fileName)</returns>
+        public async Task<string> DownloadFileAsync(string strPathName, string strUrl, Dictionary<string, object> header = null, CancellationTokenSource tokensource = null)
         {
-            var task = oauth.HttpGetStreamAsync(header, strUrl);
-
-            //打开上次下载的文件或新建文件
-            int CompletedLength = 0;//记录已完成的大小    
-
-
             FileStream FStream = null;
-
-            #region get FileName
-            string FileName;
-
-            string[] split = strUrl.Split('/');
-            FileName = split[split.Length - 1];
-
-            FileName.Trim(' ');
-
-
-            #endregion
-
-            string fileRoute = "";
-            if (strPathName == null) fileRoute = FileName;
-            else {
-                fileRoute = strPathName + '/' + FileName;
-                if (!Directory.Exists(strPathName)) Directory.CreateDirectory(strPathName);
-            }
-            if (File.Exists(fileRoute)) File.Delete(fileRoute);
-            FStream = new FileStream(fileRoute, FileMode.Create);
-
-            byte[] btContent = new byte[1024];
-
-            Stream myStream = await task;
-
-            while ((CompletedLength = myStream.Read(btContent, 0, 1024)) > 0)
+            try
             {
-                FStream.Write(btContent, 0, CompletedLength);
+                var task = oauth.HttpGetStreamAsync(header, strUrl, tokensource);
+                //打开上次下载的文件或新建文件
+                int CompletedLength = 0;//记录已完成的大小 
+                //long ContentLength=0; Can't get in streamheader and getasync method is not good enough to download
+                int progress = 0;//进度
+                #region get filename
+                string filename = null;
 
+                if (filename != null) filename.Trim(' ');
+
+                if (filename == null || filename.Equals(""))
+                {
+                    string[] split = strUrl.Split('/');
+                    filename = split[split.Length - 1];
+                }
+                #endregion
+
+                string fileRoute = "";
+                if (strPathName == null) fileRoute = filename;
+                else {
+                    fileRoute = strPathName + '/' + filename;
+                    if (!Directory.Exists(strPathName)) Directory.CreateDirectory(strPathName);
+                }
+                if (File.Exists(fileRoute)) File.Delete(fileRoute);
+                FStream = new FileStream(fileRoute, FileMode.Create);
+
+                byte[] btContent = new byte[1024];
+
+                Stream myStream = await task;
+
+
+                if (tokensource != null)
+                {
+                    await Task.Run(() =>
+                    {
+                        while ((CompletedLength = myStream.Read(btContent, 0, 1024)) > 0)
+                        {
+                            FStream.Write(btContent, 0, CompletedLength);
+                            progress += CompletedLength;
+                        }
+                    }, tokensource.Token);
+                }
+                else {
+                    await Task.Run(() =>
+                    {
+                        while ((CompletedLength = myStream.Read(btContent, 0, 1024)) > 0)
+                        {
+                            FStream.Write(btContent, 0, CompletedLength);
+                            progress += CompletedLength;
+                        }
+                    });
+                }
+                FStream.Close();
+                myStream.Close();
+                return fileRoute;
             }
-            FStream.Close();
-            myStream.Close();
-            return fileRoute;
+            catch (Exception e)
+            {
+                Debug.WriteLine(e);
+                if (FStream != null)
+                {
+                    FStream.Close();
+                    FStream.Dispose();
+                }
+                throw e;
+            }
         }
     }
 }

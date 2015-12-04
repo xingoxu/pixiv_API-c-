@@ -37,18 +37,23 @@
             this.my_favourite_mode = new System.Windows.Forms.RadioButton();
             this.single_mode = new System.Windows.Forms.RadioButton();
             this.listBox1 = new System.Windows.Forms.ListBox();
-            this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.label2 = new System.Windows.Forms.Label();
             this.panel_doing = new System.Windows.Forms.Panel();
+            this.cancel_button = new System.Windows.Forms.Button();
             this.progressBar1 = new System.Windows.Forms.ProgressBar();
             this.label1 = new System.Windows.Forms.Label();
             this.login_panel = new System.Windows.Forms.Panel();
-            this.label2 = new System.Windows.Forms.Label();
+            this.cancelbuttonicon = new System.Windows.Forms.Button();
+            this.loadingIcon = new System.Windows.Forms.PictureBox();
+            this.pictureBox1 = new System.Windows.Forms.PictureBox();
+            this.progress_label = new System.Windows.Forms.Label();
             this.groupBox1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.panel1.SuspendLayout();
             this.panel_doing.SuspendLayout();
             this.login_panel.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.loadingIcon)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.SuspendLayout();
             // 
             // button1
@@ -63,7 +68,7 @@
             // 
             // button2
             // 
-            this.button2.Location = new System.Drawing.Point(373, 63);
+            this.button2.Location = new System.Drawing.Point(373, 79);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(75, 23);
             this.button2.TabIndex = 1;
@@ -73,14 +78,14 @@
             // 
             // textBox1
             // 
-            this.textBox1.Location = new System.Drawing.Point(166, 15);
+            this.textBox1.Location = new System.Drawing.Point(166, 31);
             this.textBox1.Name = "textBox1";
             this.textBox1.Size = new System.Drawing.Size(201, 20);
             this.textBox1.TabIndex = 2;
             // 
             // button3
             // 
-            this.button3.Location = new System.Drawing.Point(373, 113);
+            this.button3.Location = new System.Drawing.Point(373, 129);
             this.button3.Name = "button3";
             this.button3.Size = new System.Drawing.Size(75, 23);
             this.button3.TabIndex = 3;
@@ -93,7 +98,7 @@
             this.groupBox1.Controls.Add(this.user_id_mode);
             this.groupBox1.Controls.Add(this.my_favourite_mode);
             this.groupBox1.Controls.Add(this.single_mode);
-            this.groupBox1.Location = new System.Drawing.Point(10, 8);
+            this.groupBox1.Location = new System.Drawing.Point(10, 24);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Size = new System.Drawing.Size(150, 128);
             this.groupBox1.TabIndex = 4;
@@ -136,24 +141,17 @@
             // listBox1
             // 
             this.listBox1.FormattingEnabled = true;
-            this.listBox1.Location = new System.Drawing.Point(166, 41);
+            this.listBox1.Location = new System.Drawing.Point(166, 57);
             this.listBox1.Name = "listBox1";
             this.listBox1.Size = new System.Drawing.Size(100, 95);
             this.listBox1.TabIndex = 5;
             this.listBox1.SelectedIndexChanged += new System.EventHandler(this.listBox1_SelectedIndexChanged);
             // 
-            // pictureBox1
-            // 
-            this.pictureBox1.Location = new System.Drawing.Point(272, 41);
-            this.pictureBox1.Name = "pictureBox1";
-            this.pictureBox1.Size = new System.Drawing.Size(95, 95);
-            this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
-            this.pictureBox1.TabIndex = 6;
-            this.pictureBox1.TabStop = false;
-            // 
             // panel1
             // 
             this.panel1.BackColor = System.Drawing.Color.Transparent;
+            this.panel1.Controls.Add(this.cancelbuttonicon);
+            this.panel1.Controls.Add(this.loadingIcon);
             this.panel1.Controls.Add(this.label2);
             this.panel1.Controls.Add(this.pictureBox1);
             this.panel1.Controls.Add(this.groupBox1);
@@ -163,18 +161,39 @@
             this.panel1.Controls.Add(this.button3);
             this.panel1.Location = new System.Drawing.Point(0, 0);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(460, 151);
+            this.panel1.Size = new System.Drawing.Size(460, 161);
             this.panel1.TabIndex = 7;
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(166, 16);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(63, 13);
+            this.label2.TabIndex = 7;
+            this.label2.Text = "这里输入id";
             // 
             // panel_doing
             // 
             this.panel_doing.BackColor = System.Drawing.SystemColors.Window;
+            this.panel_doing.Controls.Add(this.progress_label);
+            this.panel_doing.Controls.Add(this.cancel_button);
             this.panel_doing.Controls.Add(this.progressBar1);
             this.panel_doing.Controls.Add(this.label1);
-            this.panel_doing.Location = new System.Drawing.Point(127, 44);
+            this.panel_doing.Location = new System.Drawing.Point(125, 36);
             this.panel_doing.Name = "panel_doing";
             this.panel_doing.Size = new System.Drawing.Size(207, 61);
             this.panel_doing.TabIndex = 0;
+            // 
+            // cancel_button
+            // 
+            this.cancel_button.Location = new System.Drawing.Point(122, 7);
+            this.cancel_button.Name = "cancel_button";
+            this.cancel_button.Size = new System.Drawing.Size(75, 23);
+            this.cancel_button.TabIndex = 8;
+            this.cancel_button.Text = "取消";
+            this.cancel_button.UseVisualStyleBackColor = true;
+            this.cancel_button.Click += new System.EventHandler(this.cancel_button_Click);
             // 
             // progressBar1
             // 
@@ -195,38 +214,76 @@
             // login_panel
             // 
             this.login_panel.Controls.Add(this.button1);
-            this.login_panel.Location = new System.Drawing.Point(371, 10);
+            this.login_panel.Location = new System.Drawing.Point(371, 15);
             this.login_panel.Name = "login_panel";
             this.login_panel.Size = new System.Drawing.Size(97, 35);
             this.login_panel.TabIndex = 8;
             // 
-            // label2
+            // cancelbuttonicon
             // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(166, 0);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(63, 13);
-            this.label2.TabIndex = 7;
-            this.label2.Text = "这里输入id";
+            this.cancelbuttonicon.BackgroundImage = global::pixiv_demo.Properties.Resources.stop;
+            this.cancelbuttonicon.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
+            this.cancelbuttonicon.FlatAppearance.BorderColor = System.Drawing.SystemColors.Control;
+            this.cancelbuttonicon.FlatAppearance.BorderSize = 0;
+            this.cancelbuttonicon.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.cancelbuttonicon.Location = new System.Drawing.Point(350, 15);
+            this.cancelbuttonicon.Name = "cancelbuttonicon";
+            this.cancelbuttonicon.Size = new System.Drawing.Size(15, 15);
+            this.cancelbuttonicon.TabIndex = 9;
+            this.cancelbuttonicon.UseVisualStyleBackColor = true;
+            this.cancelbuttonicon.Visible = false;
+            this.cancelbuttonicon.Click += new System.EventHandler(this.cancel_button_Click);
+            // 
+            // loadingIcon
+            // 
+            this.loadingIcon.Image = global::pixiv_demo.Properties.Resources.HAPPI_Loading1;
+            this.loadingIcon.Location = new System.Drawing.Point(330, 15);
+            this.loadingIcon.Name = "loadingIcon";
+            this.loadingIcon.Size = new System.Drawing.Size(15, 15);
+            this.loadingIcon.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.loadingIcon.TabIndex = 8;
+            this.loadingIcon.TabStop = false;
+            this.loadingIcon.Visible = false;
+            // 
+            // pictureBox1
+            // 
+            this.pictureBox1.Location = new System.Drawing.Point(272, 57);
+            this.pictureBox1.Name = "pictureBox1";
+            this.pictureBox1.Size = new System.Drawing.Size(95, 95);
+            this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.pictureBox1.TabIndex = 6;
+            this.pictureBox1.TabStop = false;
+            // 
+            // progress_label
+            // 
+            this.progress_label.AutoSize = true;
+            this.progress_label.Location = new System.Drawing.Point(69, 39);
+            this.progress_label.Name = "progress_label";
+            this.progress_label.Size = new System.Drawing.Size(20, 13);
+            this.progress_label.TabIndex = 9;
+            this.progress_label.Text = "0K";
+            this.progress_label.Visible = false;
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(458, 145);
+            this.ClientSize = new System.Drawing.Size(457, 164);
             this.Controls.Add(this.login_panel);
             this.Controls.Add(this.panel1);
             this.Controls.Add(this.panel_doing);
             this.Name = "Form1";
             this.Text = "pixiv_demo";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
             this.panel_doing.ResumeLayout(false);
             this.panel_doing.PerformLayout();
             this.login_panel.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.loadingIcon)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -249,6 +306,10 @@
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.Panel login_panel;
         private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Button cancel_button;
+        private System.Windows.Forms.PictureBox loadingIcon;
+        private System.Windows.Forms.Button cancelbuttonicon;
+        private System.Windows.Forms.Label progress_label;
     }
 }
 

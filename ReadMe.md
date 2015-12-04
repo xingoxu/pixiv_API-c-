@@ -2,10 +2,11 @@
 ### translate from [pixivpy](https://github.com/upbit/pixivpy)  
 
 ## Start with OAuth:    
-  
+```csharp
 OAuth auth=new OAuth();  
 bool result=await auth.authAsync(username,password);  
 if(result) pixivAPI pixivAPI=new pixivAPI(auth);  
+```
   
 More detail in demo :)  
 
@@ -16,6 +17,7 @@ nuget package : [Newtonsoft.Json](http://www.newtonsoft.com/json)
 ##  APIs  
 ### Update Information:  
 Update information are placed at here.  
+* [2015-12-04]  update demo and now base api support task cancel
 * [2015-12-03]　update demo and adjust some async method
 * [2015-12-03]　update APIs with [pixivpy](https://github.com/upbit/pixivpy)
 * 　　　　　　　my_favourite_users api has been removed because of its unexpected returns
@@ -25,7 +27,7 @@ Update information are placed at here.
 1. for all returns may be null(network problem)  
 2. for bool returns pixiv json won't tell you failed with what (bad request or has added), just true(added/followed) or false(bad request)  
 3. most api parameters has been written in the code note  
-4. if it hasn't, see the following api list with caption
+4. if it hasn't, see the following api list with caption  
 
 ```csharp  
 public List<string> bad_words()  
@@ -65,7 +67,7 @@ public JObject search_works(string query, int page, int per_page, string mode = 
 
 public JObject latest_works(int page = 1, int per_page = 30,bool include_stats=true,bool include_sanity_level=true)
   
-public async Task<string> DownloadFileAsync(string strPathName, string strUrl, Dictionary<string, object> header = null)  
+public async Task<string> DownloadFileAsync(string strPathName, string strUrl, Dictionary<string, object> header = null, CancellationTokenSource tokensource = null)  
 ```  
   
 [2015-12-02] All api has been test and the result text is at ./pixiv_API/api_result folder  
@@ -76,4 +78,6 @@ Feel free to use, reuse and abuse the code in this project.
   
 When you use this API, please [accept the term of pixiv](http://www.pixiv.net/terms/?page=term). The author of the API does not take any responsibility.
   
+I'm not a professional C# designer. If you have cooler code, pull request is warmly welcomed!  
+
 Thanks for the author and the APIfounder!   

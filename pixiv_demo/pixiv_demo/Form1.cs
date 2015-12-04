@@ -10,6 +10,9 @@ using System.Threading.Tasks;
 using pixiv_API;
 using Newtonsoft.Json.Linq;
 using System.Diagnostics;
+using System.Threading;
+using System.Net.Http;
+using System.IO;
 
 namespace pixiv_demo
 {
@@ -18,6 +21,7 @@ namespace pixiv_demo
         public Form1()
         {
             InitializeComponent();
+            token = new CancellationTokenSource();
             single_mode.Checked = true;
             panel1.Enabled = false;
         }
@@ -25,16 +29,28 @@ namespace pixiv_demo
         pixivAPI pixivAPI;
         private async void button1_Click(object sender, EventArgs e)
         {
+            string username = "username";
+            string password = "password";
             panel1.Enabled = false;
             login_panel.Enabled = false;
             progressBar1.Value = 0;
             panel_doing.BringToFront();
-
-            Task<bool> task = Login("username", "password");
-            progressBar1.Value += 10;           
-            bool result = await task;
+            auth = new OAuth();
+            progressBar1.Value = 20;
+            var task = auth.authAsync(username, password, token);
+            progressBar1.Value = 50;
+            bool result = false;
+            try {
+                result = await task;       
+            }
+            catch
+            {
+                panel1.BringToFront();
+                login_panel.BringToFront();
+                login_panel.Enabled = true;
+                return;
+            }
             progressBar1.Value = 100;
-            Debug.WriteLine(result);
             if (result)
             {
                 MessageBox.Show("登陆成功");
@@ -43,37 +59,38 @@ namespace pixiv_demo
                 panel1.Enabled = true;
                 panel1.BringToFront();
                 login_panel.BringToFront();
+                return;
             }
-            else {
-                MessageBox.Show("登录失败");
-                panel1.BringToFront();
-                login_panel.BringToFront();
-                login_panel.Enabled = true;
-            }
-        }
-        private async Task<bool> Login(string username,string password)
-        {
-            auth = new OAuth();
-            progressBar1.Value += 20;
-            var task=auth.authAsync(username, password);
-            progressBar1.Value = 50;
-            bool result = await task;
-            progressBar1.Value = 70;
-            return result;
+
+            MessageBox.Show("登录失败");
+            panel1.BringToFront();
+            login_panel.BringToFront();
+            login_panel.Enabled = true;
+
         }
         private async void button2_Click(object sender, EventArgs e)
         {
+            if (textBox1.Text == "" || pixivAPI == null) return;
+
             panel1.Enabled = false;
             progressBar1.Value = 0;
             panel_doing.BringToFront();
 
-            if (textBox1.Text == "") return;
-            if (pixivAPI == null) return;
-            var task = Task.Run(() => pixivAPI.illust_work_originalPicURL(textBox1.Text));
+            var task = Task.Run(() => { return pixivAPI.illust_work_originalPicURL(textBox1.Text); }, token.Token);
 
             progressBar1.Value = 5;
-
-            var urls = await task;
+            List<string> urls = null;
+            try {
+                urls = await task;
+            }
+            catch
+            {
+                progressBar1.Value = 100;
+                panel1.Enabled = true;
+                panel1.BringToFront();
+                login_panel.BringToFront();
+                return;
+            }
 
             progressBar1.Value = 20;
 
@@ -82,7 +99,7 @@ namespace pixiv_demo
             {
                 Debug.WriteLine(urls[0]);
                 progressBar1.Maximum = urls.Count * 100;
-                var task2 = Task.Run(() =>
+                var task2 = Task.Factory.StartNew(() =>
                 {
                     UpdateUI(() =>
                     {
@@ -92,11 +109,14 @@ namespace pixiv_demo
                             if (progressBar1.Value + 100 <= progressBar1.Maximum) progressBar1.Value += 100;
                         }
                     });
+                }, token.Token);
 
-                });
-
-                await task2;
-
+                try
+                {
+                    await task2;
+                }
+                catch
+                { }
             }
             else {
                 Debug.WriteLine("Network Failed");
@@ -117,21 +137,176 @@ namespace pixiv_demo
                 uiAction();
             }
         }
-
-        private void button3_Click(object sender, EventArgs e)
+        private async void button3_Click(object sender, EventArgs e)
         {
-            Debug.WriteLine((string)listBox1.SelectedItem);
-            pixivAPI.DownloadFileAsync(null, (string)listBox1.SelectedItem);
-        }
+            panel1.Enabled = false;
+            progressBar1.Value = 0;
+            panel_doing.BringToFront();
 
-        private async void listBox1_SelectedIndexChanged(object sender, EventArgs e)
+            try {
+                await DownloadFileAsync(null, (string)listBox1.SelectedItem, null, token);
+            }
+            catch
+            {
+
+            }
+
+            panel1.Enabled = true;
+            panel1.BringToFront();
+            login_panel.BringToFront();
+
+        }
+        private void listBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (listBox1.SelectedItem == null) return;
-            string path = await pixivAPI.DownloadFileAsync("temp", (string)listBox1.SelectedItem);
+            cancel_button_Click(null, null);
+            string url = (string)listBox1.SelectedItem;
 
-            pictureBox1.Image = Image.FromFile(path);
-            //pictureBox1.SizeMode = PictureBoxSizeMode.AutoSize;
+            if (url == null || url.Equals("")) return;
+            if (thread != null && thread.IsAlive)
+            {
+                try { thread.Abort(); }
+                catch
+                {
+                    cancelbuttonicon.Visible = false;
+                    loadingIcon.Visible = false;
+                }
+            }
+
+            cancelbuttonicon.Visible = true;
+            loadingIcon.Visible = true;
+
+            thread = new Thread(() =>
+            {
+                string path = DownloadFileAsync("temp", url).Result;
+                UpdateUI(() =>
+                {
+                    cancelbuttonicon.Visible = false;
+                    loadingIcon.Visible = false;
+                    if (pictureBox1.Image != null) pictureBox1.Image.Dispose();
+                    pictureBox1.Image = Image.FromFile(path);
+                });
+            });
+            thread.Start();
         }
+        Thread thread;
+        CancellationTokenSource token;
+        private void cancel_button_Click(object sender, EventArgs e)
+        {
+            token.Cancel();
+            token.Dispose();
+            token = new CancellationTokenSource();
+            if (thread != null && thread.IsAlive)
+            {
+                try { thread.Abort(); }
+                catch
+                {
+
+                }
+                cancelbuttonicon.Visible = false;
+                loadingIcon.Visible = false;
+            }
+        }
+        /// <summary>
+        /// rewrite the api's downloadfile method with ui exchange
+        /// </summary>
+        /// <param name="strPathName"></param>
+        /// <param name="strUrl"></param>
+        /// <param name="header"></param>
+        /// <param name="tokensource"></param>
+        /// <returns></returns>
+        public async Task<string> DownloadFileAsync(string strPathName, string strUrl, Dictionary<string, object> header = null, CancellationTokenSource tokensource = null)
+        {
+            FileStream FStream = null;
+            try
+            {
+                var task = auth.HttpGetStreamAsync(header, strUrl, tokensource);
+                //打开上次下载的文件或新建文件
+                int CompletedLength = 0;//记录已完成的大小 
+                int progress = 0;//进度
+                #region get filename
+                string filename = null;
+
+                if (filename != null) filename.Trim(' ');
+
+                if (filename == null || filename.Equals(""))
+                {
+                    string[] split = strUrl.Split('/');
+                    filename = split[split.Length - 1];
+                }
+                #endregion
+
+                string fileRoute = "";
+                if (strPathName == null) fileRoute = filename;
+                else {
+                    fileRoute = strPathName + '/' + filename;
+                    if (!Directory.Exists(strPathName)) Directory.CreateDirectory(strPathName);
+                }
+                if (File.Exists(fileRoute)) File.Delete(fileRoute);
+                FStream = new FileStream(fileRoute, FileMode.Create);
+
+                byte[] btContent = new byte[1024];
+
+                Stream myStream = await task;                 
+
+
+                if (tokensource != null)
+                {
+                    await Task.Run(() =>
+                    {
+                        while ((CompletedLength = myStream.Read(btContent, 0, 1024)) > 0)
+                        {
+                            FStream.Write(btContent, 0, CompletedLength);
+                            progress += CompletedLength;
+                            UpdateUI(() =>
+                            {
+                                progress_label.Visible = true;
+                                progress_label.Text = ((double)progress / 1024.0).ToString("f2") + "K";
+                            });
+                        }
+                    }, tokensource.Token);
+                }
+                else {
+                    await Task.Run(() =>
+                    {
+                        while ((CompletedLength = myStream.Read(btContent, 0, 1024)) > 0)
+                        {
+                            FStream.Write(btContent, 0, CompletedLength);
+                            progress += CompletedLength;
+                            UpdateUI(() =>
+                            {
+                                progress_label.Visible = true;
+                                progress_label.Text = ((double)progress / 1024.0).ToString("f2") + "K";
+                            });
+                        }
+                    });
+                }
+                UpdateUI(() =>
+                {
+                    progress_label.Visible = false;
+                });
+                FStream.Close();
+                myStream.Close();
+                return fileRoute;
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e);
+                if (FStream != null)
+                {
+                    FStream.Close();
+                    FStream.Dispose();
+                }
+                throw e;
+            }
+        }
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (pictureBox1.Image != null) pictureBox1.Image.Dispose();
+            if (Directory.Exists("temp")) Directory.Delete("temp", true);
+        }
+
     }
 }
 

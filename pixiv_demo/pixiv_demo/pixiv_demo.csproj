@@ -90,6 +90,18 @@
       <Name>pixiv_API</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\HAPPI_Loading.gif" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\HAPPI_Loading1.gif" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\red_cross.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\stop.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
