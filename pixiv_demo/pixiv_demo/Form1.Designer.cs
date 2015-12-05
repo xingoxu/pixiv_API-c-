@@ -38,22 +38,22 @@
             this.single_mode = new System.Windows.Forms.RadioButton();
             this.listBox1 = new System.Windows.Forms.ListBox();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.cancelbuttonicon = new System.Windows.Forms.Button();
+            this.loadingIcon = new System.Windows.Forms.PictureBox();
             this.label2 = new System.Windows.Forms.Label();
+            this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.panel_doing = new System.Windows.Forms.Panel();
+            this.progress_label = new System.Windows.Forms.Label();
             this.cancel_button = new System.Windows.Forms.Button();
             this.progressBar1 = new System.Windows.Forms.ProgressBar();
             this.label1 = new System.Windows.Forms.Label();
             this.login_panel = new System.Windows.Forms.Panel();
-            this.cancelbuttonicon = new System.Windows.Forms.Button();
-            this.loadingIcon = new System.Windows.Forms.PictureBox();
-            this.pictureBox1 = new System.Windows.Forms.PictureBox();
-            this.progress_label = new System.Windows.Forms.Label();
             this.groupBox1.SuspendLayout();
             this.panel1.SuspendLayout();
-            this.panel_doing.SuspendLayout();
-            this.login_panel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.loadingIcon)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
+            this.panel_doing.SuspendLayout();
+            this.login_panel.SuspendLayout();
             this.SuspendLayout();
             // 
             // button1
@@ -164,6 +164,32 @@
             this.panel1.Size = new System.Drawing.Size(460, 161);
             this.panel1.TabIndex = 7;
             // 
+            // cancelbuttonicon
+            // 
+            this.cancelbuttonicon.BackgroundImage = global::pixiv_demo.Properties.Resources.stop;
+            this.cancelbuttonicon.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
+            this.cancelbuttonicon.FlatAppearance.BorderColor = System.Drawing.SystemColors.Control;
+            this.cancelbuttonicon.FlatAppearance.BorderSize = 0;
+            this.cancelbuttonicon.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.cancelbuttonicon.Location = new System.Drawing.Point(350, 15);
+            this.cancelbuttonicon.Name = "cancelbuttonicon";
+            this.cancelbuttonicon.Size = new System.Drawing.Size(15, 15);
+            this.cancelbuttonicon.TabIndex = 9;
+            this.cancelbuttonicon.UseVisualStyleBackColor = true;
+            this.cancelbuttonicon.Visible = false;
+            this.cancelbuttonicon.Click += new System.EventHandler(this.cancel_button_Click);
+            // 
+            // loadingIcon
+            // 
+            this.loadingIcon.Image = global::pixiv_demo.Properties.Resources.HAPPI_Loading1;
+            this.loadingIcon.Location = new System.Drawing.Point(330, 15);
+            this.loadingIcon.Name = "loadingIcon";
+            this.loadingIcon.Size = new System.Drawing.Size(15, 15);
+            this.loadingIcon.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.loadingIcon.TabIndex = 8;
+            this.loadingIcon.TabStop = false;
+            this.loadingIcon.Visible = false;
+            // 
             // label2
             // 
             this.label2.AutoSize = true;
@@ -172,6 +198,15 @@
             this.label2.Size = new System.Drawing.Size(63, 13);
             this.label2.TabIndex = 7;
             this.label2.Text = "这里输入id";
+            // 
+            // pictureBox1
+            // 
+            this.pictureBox1.Location = new System.Drawing.Point(272, 57);
+            this.pictureBox1.Name = "pictureBox1";
+            this.pictureBox1.Size = new System.Drawing.Size(95, 95);
+            this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.pictureBox1.TabIndex = 6;
+            this.pictureBox1.TabStop = false;
             // 
             // panel_doing
             // 
@@ -184,6 +219,16 @@
             this.panel_doing.Name = "panel_doing";
             this.panel_doing.Size = new System.Drawing.Size(207, 61);
             this.panel_doing.TabIndex = 0;
+            // 
+            // progress_label
+            // 
+            this.progress_label.AutoSize = true;
+            this.progress_label.Location = new System.Drawing.Point(69, 39);
+            this.progress_label.Name = "progress_label";
+            this.progress_label.Size = new System.Drawing.Size(20, 13);
+            this.progress_label.TabIndex = 9;
+            this.progress_label.Text = "0K";
+            this.progress_label.Visible = false;
             // 
             // cancel_button
             // 
@@ -214,55 +259,10 @@
             // login_panel
             // 
             this.login_panel.Controls.Add(this.button1);
-            this.login_panel.Location = new System.Drawing.Point(371, 15);
+            this.login_panel.Location = new System.Drawing.Point(371, 27);
             this.login_panel.Name = "login_panel";
             this.login_panel.Size = new System.Drawing.Size(97, 35);
             this.login_panel.TabIndex = 8;
-            // 
-            // cancelbuttonicon
-            // 
-            this.cancelbuttonicon.BackgroundImage = global::pixiv_demo.Properties.Resources.stop;
-            this.cancelbuttonicon.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
-            this.cancelbuttonicon.FlatAppearance.BorderColor = System.Drawing.SystemColors.Control;
-            this.cancelbuttonicon.FlatAppearance.BorderSize = 0;
-            this.cancelbuttonicon.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.cancelbuttonicon.Location = new System.Drawing.Point(350, 15);
-            this.cancelbuttonicon.Name = "cancelbuttonicon";
-            this.cancelbuttonicon.Size = new System.Drawing.Size(15, 15);
-            this.cancelbuttonicon.TabIndex = 9;
-            this.cancelbuttonicon.UseVisualStyleBackColor = true;
-            this.cancelbuttonicon.Visible = false;
-            this.cancelbuttonicon.Click += new System.EventHandler(this.cancel_button_Click);
-            // 
-            // loadingIcon
-            // 
-            this.loadingIcon.Image = global::pixiv_demo.Properties.Resources.HAPPI_Loading1;
-            this.loadingIcon.Location = new System.Drawing.Point(330, 15);
-            this.loadingIcon.Name = "loadingIcon";
-            this.loadingIcon.Size = new System.Drawing.Size(15, 15);
-            this.loadingIcon.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
-            this.loadingIcon.TabIndex = 8;
-            this.loadingIcon.TabStop = false;
-            this.loadingIcon.Visible = false;
-            // 
-            // pictureBox1
-            // 
-            this.pictureBox1.Location = new System.Drawing.Point(272, 57);
-            this.pictureBox1.Name = "pictureBox1";
-            this.pictureBox1.Size = new System.Drawing.Size(95, 95);
-            this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
-            this.pictureBox1.TabIndex = 6;
-            this.pictureBox1.TabStop = false;
-            // 
-            // progress_label
-            // 
-            this.progress_label.AutoSize = true;
-            this.progress_label.Location = new System.Drawing.Point(69, 39);
-            this.progress_label.Name = "progress_label";
-            this.progress_label.Size = new System.Drawing.Size(20, 13);
-            this.progress_label.TabIndex = 9;
-            this.progress_label.Text = "0K";
-            this.progress_label.Visible = false;
             // 
             // Form1
             // 
@@ -279,11 +279,11 @@
             this.groupBox1.PerformLayout();
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.loadingIcon)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.panel_doing.ResumeLayout(false);
             this.panel_doing.PerformLayout();
             this.login_panel.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.loadingIcon)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.ResumeLayout(false);
 
         }

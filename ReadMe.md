@@ -17,7 +17,7 @@ nuget package : [Newtonsoft.Json](http://www.newtonsoft.com/json)
 ##  APIs  
 ### Update Information:  
 Update information are placed at here.  
-* [2015-12-04]  update demo and now base api support task cancel
+* [2015-12-04]　update demo and now base api support task cancel
 * [2015-12-03]　update demo and adjust some async method
 * [2015-12-03]　update APIs with [pixivpy](https://github.com/upbit/pixivpy)
 * 　　　　　　　my_favourite_users api has been removed because of its unexpected returns
@@ -70,7 +70,7 @@ public JObject latest_works(int page = 1, int per_page = 30,bool include_stats=t
 public async Task<string> DownloadFileAsync(string strPathName, string strUrl, Dictionary<string, object> header = null, CancellationTokenSource tokensource = null)  
 ```  
   
-[2015-12-02] All api has been test and the result text is at ./pixiv_API/api_result folder  
+[2015-12-02]　All api has been test and the result text is at ./pixiv_API/api_result folder  
 
 ## License:  
 

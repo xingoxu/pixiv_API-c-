@@ -73,7 +73,7 @@ namespace pixiv_API
         {
             var json = illust_work(illust_id);
 
-            if (json == null) return new List<string>();
+            if (json == null) return null;
 
             List<string> result = new List<string>();
             

@@ -76,7 +76,46 @@ namespace pixiv_demo
             progressBar1.Value = 0;
             panel_doing.BringToFront();
 
-            var task = Task.Run(() => { return pixivAPI.illust_work_originalPicURL(textBox1.Text); }, token.Token);
+            Task<List<string>> task = null;
+            if(single_mode.Checked)
+            task = Task.Run(() => { return pixivAPI.illust_work_originalPicURL(textBox1.Text); }, token.Token);
+            else if (my_favourite_mode.Checked)
+            
+                task = Task.Run(() =>
+                {
+                    var json = pixivAPI.my_favourite_works(1, 10, true);
+                    if (json == null) return null;
+
+                    List<string> result = new List<string>();
+                    foreach(JObject response in json.Value<JArray>("response"))
+                    {
+                        if (response["work"] == null) continue;
+                        if ((response["work"]["age_limit"].Value<string>()).Equals("r18")) continue;
+                        result.Add(response["work"]["image_urls"]["large"].Value<string>());
+                    }
+
+                    return result;
+                }, token.Token);
+            
+            else if (user_id_mode.Checked)
+                task = Task.Run(() =>
+                {
+                    var json = pixivAPI.user_works(textBox1.Text,1, 10);
+                    if (json == null) return null;
+
+                    List<string> result = new List<string>();
+                    foreach (JObject response in json.Value<JArray>("response"))
+                    {
+                        if (response["id"] == null) continue;
+                        if ((response["age_limit"].Value<string>()).Equals("r18")) continue;
+                        result.Add(response["image_urls"]["large"].Value<string>());
+                    }
+
+                    return result;
+                }, token.Token);
+
+
+            if (task == null) return;
 
             progressBar1.Value = 5;
             List<string> urls = null;
@@ -95,9 +134,10 @@ namespace pixiv_demo
             progressBar1.Value = 20;
 
 
-            if (urls!=null||urls.Count==0)
+            if (urls!=null&&urls.Count!=0)
             {
                 Debug.WriteLine(urls[0]);
+                listBox1.Items.Clear();
                 progressBar1.Maximum = urls.Count * 100;
                 var task2 = Task.Factory.StartNew(() =>
                 {
