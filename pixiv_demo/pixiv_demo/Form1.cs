@@ -37,7 +37,8 @@ namespace pixiv_demo
             panel_doing.BringToFront();
             auth = new OAuth();
             progressBar1.Value = 20;
-            var task = auth.authAsync(username, password, token);
+
+            var task = auth.authAsync(username, password);
             progressBar1.Value = 50;
             bool result = false;
             try {

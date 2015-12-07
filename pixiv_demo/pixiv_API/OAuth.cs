@@ -28,7 +28,7 @@ namespace pixiv_API
         public OAuth(string username, string password)//it's not good enough
         {
             http = new HttpClient(new HttpClientHandler() { CookieContainer = new CookieContainer(), UseCookies = true });
-            bool result = authAsync(username, password).Result;
+            bool result=authAsync(username, password).Result;//should be put in such as Task.Run()
         }
         /// <summary>
         /// Caution: authAsync will new a user
@@ -62,7 +62,8 @@ namespace pixiv_API
 
 
             taskpost = HttpPostAsync(api, header, parameters, tokensource);
-
+            
+            if(tokensource!=null)            
             return await taskpost.ContinueWith((task) =>
             {
                 if (task.Result.IsSuccessStatusCode)
@@ -89,7 +90,34 @@ namespace pixiv_API
                     return false;
                 }
 
-            }, tokensource.Token);            
+            }, tokensource.Token); 
+            else return await taskpost.ContinueWith((task) =>
+            {
+                if (task.Result.IsSuccessStatusCode)
+                {
+                    var json = JObject.Parse(task.Result.Content.ReadAsStringAsync().Result);
+
+                    user = new pixivUser();
+                    user.avatar = new string[3];
+
+                    var response = json.Value<JObject>("response");
+
+                    user.access_token = response["access_token"].ToString();
+                    user.expires_time = (int)response["expires_in"];
+                    user.refresh_token = response["refresh_token"].ToString();
+                    user.id = response["user"]["id"].ToString();
+                    user.name = response["user"]["name"].ToString();
+                    user.avatar[0] = response["user"]["profile_image_urls"]["px_16x16"].ToString();//0 small
+                    user.avatar[1] = response["user"]["profile_image_urls"]["px_50x50"].ToString();//1 middle
+                    user.avatar[2] = response["user"]["profile_image_urls"]["px_170x170"].ToString();//2 big
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+
+            });
         }
         /// <summary>
         /// Caution:reAuthAsync will new a user
