@@ -48,6 +48,7 @@
             this.progressBar1 = new System.Windows.Forms.ProgressBar();
             this.label1 = new System.Windows.Forms.Label();
             this.login_panel = new System.Windows.Forms.Panel();
+            this.button4 = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.loadingIcon)).BeginInit();
@@ -150,6 +151,7 @@
             // panel1
             // 
             this.panel1.BackColor = System.Drawing.Color.Transparent;
+            this.panel1.Controls.Add(this.button4);
             this.panel1.Controls.Add(this.cancelbuttonicon);
             this.panel1.Controls.Add(this.loadingIcon);
             this.panel1.Controls.Add(this.label2);
@@ -264,6 +266,16 @@
             this.login_panel.Size = new System.Drawing.Size(97, 35);
             this.login_panel.TabIndex = 8;
             // 
+            // button4
+            // 
+            this.button4.Location = new System.Drawing.Point(373, 105);
+            this.button4.Name = "button4";
+            this.button4.Size = new System.Drawing.Size(75, 23);
+            this.button4.TabIndex = 10;
+            this.button4.Text = "test_api";
+            this.button4.UseVisualStyleBackColor = true;
+            this.button4.Click += new System.EventHandler(this.button4_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -310,6 +322,7 @@
         private System.Windows.Forms.PictureBox loadingIcon;
         private System.Windows.Forms.Button cancelbuttonicon;
         private System.Windows.Forms.Label progress_label;
+        private System.Windows.Forms.Button button4;
     }
 }
 

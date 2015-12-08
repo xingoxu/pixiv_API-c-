@@ -348,6 +348,14 @@ namespace pixiv_demo
             if (Directory.Exists("temp")) Directory.Delete("temp", true);
         }
 
+        private void button4_Click(object sender, EventArgs e)
+        {
+            Task.Run(() =>
+            {
+                Debug.WriteLine(pixivAPI.illust_work("44298524"));
+            });
+
+        }
     }
 }
 

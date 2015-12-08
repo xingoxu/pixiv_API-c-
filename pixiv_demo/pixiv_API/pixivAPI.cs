@@ -59,15 +59,17 @@ namespace pixiv_API
                    { "include_stats","true" }
             };
 
-            var response = oauth.HttpGetAsync(url, parameters).Result;
+            var task = oauth.HttpGetAsync(url, parameters);
 
-            if (!response.IsSuccessStatusCode)
+
+            if (!task.Result.IsSuccessStatusCode)
             {
-                Debug.WriteLine(response);
+                Debug.WriteLine(task.Result);
                 return null;
             }
+            return JObject.Parse(task.Result.Content.ReadAsStringAsync().Result);
 
-            return JObject.Parse(response.Content.ReadAsStringAsync().Result);
+
         }
         public List<string> illust_work_originalPicURL(string illust_id)
         {
@@ -140,7 +142,7 @@ namespace pixiv_API
                 {"show_r18",r18}
             };
             if (max_id != null) parameters.Add("max_id", max_id);
-
+            
             var task = oauth.HttpGetAsync(url, parameters);
 
             if (!task.Result.IsSuccessStatusCode)

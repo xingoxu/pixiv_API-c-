@@ -28,7 +28,7 @@ namespace pixiv_API
         public OAuth(string username, string password)//it's not good enough
         {
             http = new HttpClient(new HttpClientHandler() { CookieContainer = new CookieContainer(), UseCookies = true });
-            bool result=authAsync(username, password).Result;//should be put in such as Task.Run()
+            authAsync(username, password);
         }
         /// <summary>
         /// Caution: authAsync will new a user

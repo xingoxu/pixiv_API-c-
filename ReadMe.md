@@ -17,6 +17,7 @@ nuget package : [Newtonsoft.Json](http://www.newtonsoft.com/json)
 ##  APIs  
 ### Update Information:  
 Update information are placed at here.  
+* [2015-12-08]  fix a critical bug and found some exception, will be fixed in a few days(method will be replaced with asyncMethod)
 * [2015-12-04]　update demo and now base api support task cancel
 * [2015-12-03]　update demo and adjust some async method
 * [2015-12-03]　update APIs with [pixivpy](https://github.com/upbit/pixivpy)
