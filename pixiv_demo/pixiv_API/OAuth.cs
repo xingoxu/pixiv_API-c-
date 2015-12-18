@@ -21,14 +21,13 @@ namespace pixiv_API
         #region base api
         #region login
         public OAuth()
-        {
-            http = new HttpClient(new HttpClientHandler() { CookieContainer = new CookieContainer(), UseCookies = true });
+        {            
             Debug.WriteLine("Don't forget to do authAsync first!");
         }
         public OAuth(string username, string password)//it's not good enough
         {
-            http = new HttpClient(new HttpClientHandler() { CookieContainer = new CookieContainer(), UseCookies = true });
-            authAsync(username, password);
+            var task = authAsync(username, password);
+            bool result = task.Result;
         }
         /// <summary>
         /// Caution: authAsync will new a user
@@ -62,62 +61,41 @@ namespace pixiv_API
 
 
             taskpost = HttpPostAsync(api, header, parameters, tokensource);
-            
-            if(tokensource!=null)            
-            return await taskpost.ContinueWith((task) =>
+
+            HttpResponseMessage result = null;
+
+            try
             {
-                if (task.Result.IsSuccessStatusCode)
-                {
-                    var json = JObject.Parse(task.Result.Content.ReadAsStringAsync().Result);
-
-                    user = new pixivUser();
-                    user.avatar = new string[3];
-
-                    var response = json.Value<JObject>("response");
-
-                    user.access_token = response["access_token"].ToString();
-                    user.expires_time = (int)response["expires_in"];
-                    user.refresh_token = response["refresh_token"].ToString();
-                    user.id = response["user"]["id"].ToString();
-                    user.name = response["user"]["name"].ToString();
-                    user.avatar[0] = response["user"]["profile_image_urls"]["px_16x16"].ToString();//0 small
-                    user.avatar[1] = response["user"]["profile_image_urls"]["px_50x50"].ToString();//1 middle
-                    user.avatar[2] = response["user"]["profile_image_urls"]["px_170x170"].ToString();//2 big
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-
-            }, tokensource.Token); 
-            else return await taskpost.ContinueWith((task) =>
+                result = await taskpost;
+            }
+            catch(Exception ex)
             {
-                if (task.Result.IsSuccessStatusCode)
-                {
-                    var json = JObject.Parse(task.Result.Content.ReadAsStringAsync().Result);
+                throw ex;
+            }
 
-                    user = new pixivUser();
-                    user.avatar = new string[3];
+            if (!result.IsSuccessStatusCode)
+            {
+                Debug.WriteLine(result);
+                return false;
+            }
 
-                    var response = json.Value<JObject>("response");
 
-                    user.access_token = response["access_token"].ToString();
-                    user.expires_time = (int)response["expires_in"];
-                    user.refresh_token = response["refresh_token"].ToString();
-                    user.id = response["user"]["id"].ToString();
-                    user.name = response["user"]["name"].ToString();
-                    user.avatar[0] = response["user"]["profile_image_urls"]["px_16x16"].ToString();//0 small
-                    user.avatar[1] = response["user"]["profile_image_urls"]["px_50x50"].ToString();//1 middle
-                    user.avatar[2] = response["user"]["profile_image_urls"]["px_170x170"].ToString();//2 big
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
+            var json = JObject.Parse(result.Content.ReadAsStringAsync().Result);
 
-            });
+            user = new pixivUser();
+            user.avatar = new string[3];
+
+            var response = json.Value<JObject>("response");
+
+            user.access_token = response["access_token"].ToString();
+            user.expires_time = (int)response["expires_in"];
+            user.refresh_token = response["refresh_token"].ToString();
+            user.id = response["user"]["id"].ToString();
+            user.name = response["user"]["name"].ToString();
+            user.avatar[0] = response["user"]["profile_image_urls"]["px_16x16"].ToString();//0 small
+            user.avatar[1] = response["user"]["profile_image_urls"]["px_50x50"].ToString();//1 middle
+            user.avatar[2] = response["user"]["profile_image_urls"]["px_170x170"].ToString();//2 big
+            return true;
         }
         /// <summary>
         /// Caution:reAuthAsync will new a user
@@ -136,7 +114,6 @@ namespace pixiv_API
             return await authAsync(parameters, tokensource);
         }
         #endregion
-        private HttpClient http;
         public async Task<HttpResponseMessage> HttpPostAsync(string api, Dictionary<string, object> parameters, CancellationTokenSource tokensource = null)
         {
             return await HttpPostAsync(api, null, parameters, tokensource);
@@ -146,9 +123,9 @@ namespace pixiv_API
             Dictionary<string, object> req_header = new Dictionary<string, object>
             {
                 {"Referer","http://spapi.pixiv.net/" },//header
-                {"User-Agent","PixivIOSApp/5.8.3" }
+                {"UserAgent","PixivIOSApp/5.8.3" }
             };
-
+            
             if (user != null) req_header.Add("Authorization", ("Bearer " + user.access_token));
 
             if (parameters == null) parameters = new Dictionary<string, object>();
@@ -160,6 +137,7 @@ namespace pixiv_API
                 else req_header.Add(x.Key, x.Value);
             }
 
+            HttpClient http= new HttpClient(new HttpClientHandler() { CookieContainer = new CookieContainer(), UseCookies = true });
             http.DefaultRequestHeaders.Clear();
             foreach (KeyValuePair<string, object> x in req_header)
             {
@@ -217,10 +195,10 @@ namespace pixiv_API
             Dictionary<string, object> req_header = new Dictionary<string, object>
             {
                 {"Referer","http://spapi.pixiv.net/" },//header
-                {"User-Agent","PixivIOSApp/5.8.3" },
+                {"UserAgent","PixivIOSApp/5.8.3" },
                 {"Authorization",("Bearer "+user.access_token) }
             };
-
+            
             if (header == null) header = new Dictionary<string, object>();
             //Add header
             foreach (KeyValuePair<string, object> x in header)
@@ -229,6 +207,7 @@ namespace pixiv_API
                 else req_header.Add(x.Key, x.Value);
             }
 
+            HttpClient http = new HttpClient(new HttpClientHandler() { CookieContainer = new CookieContainer(), UseCookies = true });
             http.DefaultRequestHeaders.Clear();
             foreach (KeyValuePair<string, object> x in req_header)
             {
@@ -263,7 +242,7 @@ namespace pixiv_API
             Dictionary<string, object> req_header = new Dictionary<string, object>
             {
                 {"Referer","http://spapi.pixiv.net/" },//header
-                {"User-Agent","PixivIOSApp/5.8.3" },
+                {"UserAgent","PixivIOSApp/5.8.3" },
                 {"Authorization",("Bearer "+user.access_token) }
             };
 
@@ -275,11 +254,13 @@ namespace pixiv_API
                 else req_header.Add(x.Key, x.Value);
             }
 
+            HttpClient http = new HttpClient(new HttpClientHandler() { CookieContainer = new CookieContainer(), UseCookies = true });
             http.DefaultRequestHeaders.Clear();
             foreach (KeyValuePair<string, object> x in req_header)
             {
                 http.DefaultRequestHeaders.Add(x.Key, (string)x.Value);
             }
+
 
             if (parameters == null) parameters = new Dictionary<string, object>();
 
@@ -330,7 +311,7 @@ namespace pixiv_API
             Dictionary<string, object> req_header = new Dictionary<string, object>
             {
                 {"Referer","http://spapi.pixiv.net/" },//header
-                {"User-Agent","PixivIOSApp/5.8.3" },
+                {"UserAgent","PixivIOSApp/5.8.3" },
                 {"Authorization",("Bearer "+user.access_token) }
             };
 
@@ -342,88 +323,17 @@ namespace pixiv_API
                 else req_header.Add(x.Key, x.Value);
             }
 
+            HttpClient http = new HttpClient(new HttpClientHandler() { CookieContainer = new CookieContainer(), UseCookies = true });
             http.DefaultRequestHeaders.Clear();
             foreach (KeyValuePair<string, object> x in req_header)
                 http.DefaultRequestHeaders.Add(x.Key, (string)x.Value);
-            
+
 
             if (tokensource != null)
                 return await Task.Run(() => { return http.GetStreamAsync(strUrl); }, tokensource.Token);
             return await http.GetStreamAsync(strUrl);
 
 
-
-
-
-            //The following captions are the old download file method backup
-
-
-            ////打开网络连接
-            //try
-            //{
-            //    HttpWebRequest myRequest = (HttpWebRequest)HttpWebRequest.Create(strUrl);
-
-            //    foreach(KeyValuePair<string,string> x in req_header)
-            //    {
-            //        if (x.Key.Equals("Referer")) myRequest.Referer = req_header["Referer"];
-            //        else if (x.Key.Equals("User-Agent")) myRequest.UserAgent = req_header["User-Agent"];
-            //        else
-            //            myRequest.Headers.Add(x.Key, x.Value);
-            //    }
-
-
-            //    if (CompletedLength > 0)
-            //        myRequest.AddRange((int)CompletedLength);//设置Range值
-            //    //向服务器请求，获得服务器的回应数据流
-            //    HttpWebResponse webResponse = (HttpWebResponse)myRequest.GetResponse();
-            //    #region get FileName
-            //    string FileName;
-            //    try {
-            //        FileName = webResponse.GetResponseHeader("Content-Disposition");//haven't got so I can't write more about this
-            //        Debug.WriteLine(FileName);
-            //    }
-            //    catch
-            //    {
-            //        string[] x = strUrl.Split('/');
-            //        FileName = x[x.Length - 1];
-            //    }
-            //    FileName.Trim(' ');
-            //    if (FileName == null || FileName == "")
-            //    {
-            //        string[] x = strUrl.Split('/');
-            //        FileName = x[x.Length - 1];
-            //    }
-            //    #endregion
-
-            //    string fileRoute = "";
-            //    if (strPathName == null) fileRoute = FileName;
-            //    else fileRoute = strPathName + '/' + FileName; 
-
-            //    if (File.Exists(fileRoute)) File.Delete(fileRoute);
-            //    FStream = new FileStream(fileRoute, FileMode.Create);
-
-            //    //FileLength = webResponse.ContentLength;//文件大小 （总长度）
-            //    Stream myStream = webResponse.GetResponseStream();
-            //    byte[] btContent = new byte[1024];
-            //    //if (count <= 0) count += sPosstion;//断点下载预留
-
-            //    while ((CompletedLength = myStream.Read(btContent, 0, 1024)) > 0)
-            //    {
-            //        FStream.Write(btContent, 0, CompletedLength);
-            //   //     count += CompletedLength;//记录下载到多少
-            //    }
-            //    FStream.Close();
-            //    myStream.Close();
-            //}
-            //catch(Exception e)
-            //{
-            //    Debug.WriteLine(e);
-            //    if (FStream != null)
-            //    {
-            //        FStream.Close();
-            //        FStream.Dispose();
-            //    }
-            //}
         }
         #endregion
     }
