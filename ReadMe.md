@@ -17,7 +17,8 @@ nuget package : [Newtonsoft.Json](http://www.newtonsoft.com/json)
 ##  APIs  
 ### Update Information:  
 Update information are placed at here.  
-* [2015-12-08]  fix a critical bug and found some exception, will be fixed in a few days(method will be replaced with asyncMethod)
+* [2015-12-19]　update much apis with async method.
+* [2015-12-08]　fix a critical bug and found some exception, will be fixed in a few days(method will be replaced with asyncMethod)
 * [2015-12-04]　update demo and now base api support task cancel
 * [2015-12-03]　update demo and adjust some async method
 * [2015-12-03]　update APIs with [pixivpy](https://github.com/upbit/pixivpy)
@@ -25,6 +26,7 @@ Update information are placed at here.
 * [2015-12-02]　added most of apis
 
 ### Notice:   
+0. all method now have async method, see it in pixivAPI.cs!
 1. for all returns may be null(network problem)  
 2. for bool returns pixiv json won't tell you failed with what (bad request or has added), just true(added/followed) or false(bad request)  
 3. most api parameters has been written in the code note  
